@@ -18,9 +18,6 @@ public class SpotifyActivity : AppCompatActivity(){
     lateinit var authSpotifyButton : Button
     private val ARTIST_ID = BuildConfig.ARTIST_ID
 
-
-
-
     override fun onCreate(savedInstanceState:Bundle?){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_spotify)
@@ -31,8 +28,6 @@ public class SpotifyActivity : AppCompatActivity(){
 
         }
     }
-
-
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         intent?.data?.let { uri ->
