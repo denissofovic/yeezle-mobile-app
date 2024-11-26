@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView android:id="@+id/statusCardGuessed"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="10dp"
+    android:layout_marginTop="16dp"
+    android:backgroundTint="@color/white"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:weightSum="5">
+
+        <!-- Album (with divider) -->
+        <TextView
+            android:id="@+id/statusAlbumGuessed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Album: Correct Album"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_weight="1"
+            android:paddingEnd="16dp"
+            android:background="@drawable/item_background_green" />
+
+        <!-- Vertical Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/gray" />
+
+        <!-- Track Number (with divider) -->
+        <TextView
+            android:id="@+id/statusTrackNumberGuessed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Track: 1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_weight="1"
+            android:paddingEnd="16dp"
+            android:background="@drawable/item_background_green" />
+
+        <!-- Vertical Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/gray" />
+
+        <!-- Track Length (with divider) -->
+        <TextView
+            android:id="@+id/statusTrackLengthGuessed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Length: 3:30"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_weight="1"
+            android:paddingEnd="16dp"
+            android:background="@drawable/item_background_green" />
+
+        <!-- Vertical Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/gray" />
+
+        <!-- Features (with divider) -->
+        <TextView
+            android:id="@+id/statusFeaturesGuessed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Features: Artist A, Artist B"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_weight="1"
+            android:background="@drawable/item_background_green" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Yeezle Mobile App</string>
+    <string name="loginString">Log In</string>
+    <string name="passwordHint">Password</string>
+    <string name="emailHint">Email</string>
+    <string name="yeezleLogo">Y E E Z L E</string>
+    <string name="forgot_password"><a href="forgot">Forgot password?</a></string>
+    <string name="already_have_an_account">Already have an account? Log In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="username">Username</string>
+    <string name="authorize_spotify">Authorize &amp; Sync</string>
+    <string name="signup_prompt">Don\'t have an account? <a href="signup">Sign up</a></string>
+    <string name="confirmation_sent">A confirmation email has been sent to your provided email address. Please check your inbox (and your spam folder, if necessary) for instructions on how to complete your registration.</string>
+    <string name="resend_email">Resend email</string>
+    <string name="back_to_login">Back to login</string>
+    <string name="send_reset_link">Send Reset Link</string>
+    <string name="password_reset">Enter your email and we\'ll send you a link to get back into your account</string>
+    <string name="reset_password">Reset password</string>
+    <string name="almost_there">Almost there, please choose the username that you want to use</string>
+    <string name="select">Select</string>
+    <string name="advice">Note: We advise you to be original :)</string>
+    <string name="profile_pic_desc">Dummy text\n</string>
+</resources>
