@@ -22,7 +22,16 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val sharedPreferences = getSharedPreferences("AuthPrefs", MODE_PRIVATE)
+        val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
 
+        if (isLoggedIn) {
+            startActivity(Intent(this, DashboardActivity::class.java))
+            finish()
+        } else {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        }
 
         val resetPasswordSuccess = intent.getBooleanExtra("reset_password_success", false)
         if(resetPasswordSuccess){
@@ -38,7 +47,14 @@ class MainActivity : AppCompatActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 val response = supabaseAuthHelper.logOutUser()
                 if(response){
+                    val sharedPreferences = getSharedPreferences("AuthPrefs", MODE_PRIVATE)
+                    with(sharedPreferences.edit()) {
+                        clear()
+                        apply()
+                    }
                     redirectToLoginActivity()
+                    finish()
+
                 }else{
                     Toast.makeText(this@MainActivity, "You are not logged in", Toast.LENGTH_LONG).show()
                 }

@@ -12,16 +12,20 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.yeezlemobileapp.data.models.StatItem
 import com.example.yeezlemobileapp.data.models.StatsAdapter
 import com.example.yeezlemobileapp.databinding.ActivityDashboardBinding
+import com.example.yeezlemobileapp.supabase.SupabaseAuthHelper
+import io.github.jan.supabase.auth.auth
 
 
 class DashboardActivity: AppCompatActivity() {
     private lateinit var binding: ActivityDashboardBinding
+    private val supabaseAuthHelper = SupabaseAuthHelper()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
 
         val loginSuccess = intent.getBooleanExtra("login_success", false)
         if(loginSuccess){
@@ -32,6 +36,8 @@ class DashboardActivity: AppCompatActivity() {
             redirectToGameActivity();
         }
 
+
+
         val statsList = listOf(
             StatItem(R.drawable.ic_dashboard, "Total Score", "2500"),
             StatItem(R.drawable.ic_dashboard, "Games Played", "45"),
@@ -41,9 +47,10 @@ class DashboardActivity: AppCompatActivity() {
             StatItem(R.drawable.ic_dashboard, "Best Streak", "10")
         )
 
-        val recyclerView: RecyclerView = findViewById(R.id.statsRecyclerView)
+        val recyclerView: RecyclerView = binding.statsRecyclerView
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = StatsAdapter(statsList)
+
 
     }
 
