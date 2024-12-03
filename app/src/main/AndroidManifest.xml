@@ -37,14 +37,11 @@
 
         <activity android:name=".DashboardActivity"
             android:exported="true">
-
         </activity>
 
 
         <activity android:name=".GameActivity"
             android:exported="true">
-
-
         </activity>
 
         <activity android:name=".ProfileSetupActivity"

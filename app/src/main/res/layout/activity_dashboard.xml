@@ -40,171 +40,16 @@
       app:layout_constraintTop_toBottomOf="@id/logo" />
 
 
-  <androidx.cardview.widget.CardView
-      android:id="@+id/statsCard"
+  <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/statsRecyclerView"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:padding="16dp"
-      app:cardCornerRadius="20dp"
-     app:cardElevation="16dp"
-     android:layout_marginTop="16dp"
-     app:layout_constraintBottom_toTopOf="@+id/view"
-     app:layout_constraintEnd_toEndOf="parent"
-     app:layout_constraintStart_toStartOf="parent"
-     app:layout_constraintTop_toBottomOf="@+id/nicknameText"
-     app:layout_constraintVertical_bias="0.5">
+      android:layout_marginTop="16dp"
+      app:layout_constraintBottom_toTopOf="@+id/view"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/nicknameText" />
 
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      
-   android:padding="20dp"
-   android:layout_gravity="center">
-
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:layout_marginBottom="8dp">
-
-   <ImageView
-       android:layout_width="24dp"
-       android:layout_height="24dp"
-       android:src="@drawable/ic_dashboard"
-       app:tint="@color/black" />
-
-   <TextView
-       android:id="@+id/scoreText"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_marginStart="8dp"
-       android:text="Total Score: 2500"
-       android:textColor="@color/black"
-       android:textSize="20sp"
-       android:textStyle="bold" />
-  </LinearLayout>
-
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:layout_marginBottom="8dp">
-
-   <ImageView
-       android:layout_width="24dp"
-       android:layout_height="24dp"
-       android:src="@drawable/ic_dashboard"
-       app:tint="@color/black" />
-
-   <TextView
-       android:id="@+id/gamesPlayedText"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_marginStart="8dp"
-       android:text="Games Played: 45"
-       android:textColor="@color/black"
-       android:textSize="20sp"
-       android:textStyle="bold" />
-  </LinearLayout>
-
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:layout_marginBottom="8dp">
-
-   <ImageView
-       android:layout_width="24dp"
-       android:layout_height="24dp"
-       android:src="@drawable/ic_dashboard"
-       app:tint="@color/black" />
-
-   <TextView
-       android:id="@+id/gamesWonText"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_marginStart="8dp"
-       android:text="Games Won: 30"
-       android:textColor="@color/black"
-       android:textSize="20sp"
-       android:textStyle="bold" />
-  </LinearLayout>
-
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:layout_marginBottom="8dp">
-
-   <ImageView
-       android:layout_width="24dp"
-       android:layout_height="24dp"
-       android:src="@drawable/ic_dashboard"
-       app:tint="@color/black" />
-
-   <TextView
-       android:id="@+id/gamesLostText"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_marginStart="8dp"
-       android:text="Games Lost: 15"
-       android:textColor="@color/black"
-       android:textSize="20sp"
-       android:textStyle="bold" />
-  </LinearLayout>
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:layout_marginBottom="8dp">
-
-   <ImageView
-       android:layout_width="24dp"
-       android:layout_height="24dp"
-       android:src="@drawable/ic_dashboard"
-       app:tint="@color/black" />
-
-   <TextView
-       android:id="@+id/currentWinStreakText"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_marginStart="8dp"
-       android:text="Current Streak: 5"
-       android:textColor="@color/black"
-       android:textSize="20sp"
-       android:textStyle="bold" />
-  </LinearLayout>
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal">
-
-   <ImageView
-       android:layout_width="24dp"
-       android:layout_height="24dp"
-       android:src="@drawable/ic_dashboard"
-       app:tint="@color/black" />
-
-   <TextView
-       android:id="@+id/bestWinStreakText"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_marginStart="8dp"
-       android:text="Best Streak: 10"
-       android:textColor="@color/black"
-       android:textSize="20sp"
-       android:textStyle="bold" />
-  </LinearLayout>
-
- </LinearLayout>
-</androidx.cardview.widget.CardView>
 
 
 
@@ -218,7 +63,7 @@
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintHorizontal_bias="0.0"
       app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintTop_toBottomOf="@id/statsCard" />
+      app:layout_constraintTop_toBottomOf="@id/statsRecyclerView" />
 
   <TextView
       android:id="@+id/nextSongTimerText"

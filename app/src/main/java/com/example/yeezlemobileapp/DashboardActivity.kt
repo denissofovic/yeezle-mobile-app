@@ -7,8 +7,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.yeezlemobileapp.data.models.StatItem
+import com.example.yeezlemobileapp.data.models.StatsAdapter
 import com.example.yeezlemobileapp.databinding.ActivityDashboardBinding
-import com.example.yeezlemobileapp.databinding.ActivityProfileSetupBinding
 
 
 class DashboardActivity: AppCompatActivity() {
@@ -28,6 +31,20 @@ class DashboardActivity: AppCompatActivity() {
         binding.fabPlay.setOnClickListener{
             redirectToGameActivity();
         }
+
+        val statsList = listOf(
+            StatItem(R.drawable.ic_dashboard, "Total Score", "2500"),
+            StatItem(R.drawable.ic_dashboard, "Games Played", "45"),
+            StatItem(R.drawable.ic_dashboard, "Games Won", "30"),
+            StatItem(R.drawable.ic_dashboard, "Games Lost", "15"),
+            StatItem(R.drawable.ic_dashboard, "Current Streak", "5"),
+            StatItem(R.drawable.ic_dashboard, "Best Streak", "10")
+        )
+
+        val recyclerView: RecyclerView = findViewById(R.id.statsRecyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = StatsAdapter(statsList)
+
     }
 
     private fun redirectToGameActivity() {
