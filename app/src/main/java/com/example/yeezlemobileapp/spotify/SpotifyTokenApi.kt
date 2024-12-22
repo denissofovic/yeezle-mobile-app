@@ -1,7 +1,6 @@
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import com.example.yeezlemobileapp.db.DatabaseHelper
 import com.example.yeezlemobileapp.data.models.AccessTokenResponse
 import retrofit2.Call
 import retrofit2.Callback
@@ -71,14 +70,7 @@ fun exchangeCodeForToken(authorizationCode: String, context: Context, callback: 
                 val accessToken = response.body()?.access_token
                 Log.d("SpotifyTokenApi", "Access token retrieved: $accessToken")
 
-                val dbHelper = DatabaseHelper(context)
-                accessToken?.let {
-                    dbHelper.insertAccessToken(it)
-                    callback(accessToken)
-                } ?: run {
-                    Log.e("SpotifyTokenApi", "Failed to retrieve access token from response body.")
-                    callback("Failed to retrieve access token.")
-                }
+
             } else {
                 Log.e("SpotifyTokenApi", "Error retrieving access token. Status code: ${response.code()} - ${response.message()}")
                 callback("Error retrieving access token.")

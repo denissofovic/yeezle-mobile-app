@@ -1,4 +1,4 @@
-package com.example.yeezlemobileapp.data.models
+package com.example.yeezlemobileapp.utils
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.yeezlemobileapp.R
+import com.example.yeezlemobileapp.data.models.StatItem
 
 class StatsAdapter(private val statsList: List<StatItem>) :
     RecyclerView.Adapter<StatsAdapter.StatsViewHolder>() {
@@ -26,7 +27,7 @@ class StatsAdapter(private val statsList: List<StatItem>) :
         val stat = statsList[position]
         holder.icon.setImageResource(stat.iconResId)
         holder.label.text = stat.label
-        holder.value.text = stat.value
+        holder.value.text = stat.value.toString()
     }
 
     override fun getItemCount(): Int = statsList.size

@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt") // Add this line to enable KAPT for Room annotation processing
 }
 
 android {
@@ -32,12 +33,7 @@ android {
         buildConfigField("String", "DATABASE_VERSION", "\"${project.findProperty("DATABASE_VERSION")}\"")
         buildConfigField("String", "REDIRECT_URI_AUTH", "\"${project.findProperty("REDIRECT_URI_AUTH")}\"")
         buildConfigField("String", "REDIRECT_URI_RESET", "\"${project.findProperty("REDIRECT_URI_RESET")}\"")
-
-
     }
-
-
-
 
     buildTypes {
         release {
@@ -48,15 +44,16 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
 }
-
 
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
@@ -73,13 +70,26 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:auth-kt")
     implementation("io.github.jan-tennert.supabase:realtime-kt")
 
-
     // Ktor client dependency
     implementation("io.ktor:ktor-client-okhttp:3.0.0-rc-1")
     implementation("io.github.jan-tennert.supabase:serializer-jackson:3.0.1")
 
     //Bcrypt dependency
     implementation("org.mindrot:jbcrypt:0.4")
+
+    // Room Database dependencies
+    implementation("androidx.room:room-runtime:2.5.1") // Room runtime
+    kapt("androidx.room:room-compiler:2.5.1") // Room annotation processor
+
+    // Room Kotlin Extensions (for Kotlin users)
+    implementation("androidx.room:room-ktx:2.5.1") // Kotlin extensions
+
+    // For testing Room
+    testImplementation("androidx.room:room-testing:2.5.1")
+
+    //Glide
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    kapt("com.github.bumptech.glide:compiler:4.12.0")
 
     // Testing dependencies
     testImplementation("junit:junit:4.13.2")
