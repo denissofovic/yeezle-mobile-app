@@ -10,9 +10,9 @@
 
         <TextView
             android:id="@+id/logo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_width="269dp"
+            android:layout_height="72dp"
+            android:layout_marginTop="20dp"
             android:fontFamily="@font/yeezle"
             android:gravity="center"
             android:text="@string/yeezleLogo"

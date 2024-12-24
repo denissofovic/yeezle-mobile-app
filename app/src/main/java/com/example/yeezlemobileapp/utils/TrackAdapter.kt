@@ -4,7 +4,7 @@ import android.widget.ArrayAdapter
 import android.widget.Filter
 import android.widget.Filterable
 import android.widget.TextView
-import com.example.yeezlemobileapp.GameActivity
+import com.example.yeezlemobileapp.activities.GameActivity
 import com.example.yeezlemobileapp.data.models.Track
 
 class TrackAdapter(context: GameActivity, resource: Int, private val trackList: List<Track>) :
@@ -17,7 +17,7 @@ class TrackAdapter(context: GameActivity, resource: Int, private val trackList: 
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val filterResults = FilterResults()
 
-                if (constraint == null || constraint.isEmpty()) {
+                if (constraint.isNullOrEmpty()) {
                     filterResults.count = allTracks.size
                     filterResults.values = allTracks
                 } else {
@@ -46,4 +46,9 @@ class TrackAdapter(context: GameActivity, resource: Int, private val trackList: 
         (view as TextView).text = track?.name.toString()
         return view
     }
+
+    fun getCustomTrackName(input: String): Track? {
+        return allTracks.find { it.name.equals(input, ignoreCase = true) }
+    }
 }
+

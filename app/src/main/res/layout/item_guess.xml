@@ -9,7 +9,7 @@
     android:layout_marginBottom="8dp"
     android:background="@drawable/guess_item_border">
 
-    <!-- Song Name TextView -->
+
     <TextView
         android:id="@+id/song_name"
         android:layout_width="0dp"
@@ -23,7 +23,6 @@
         android:ellipsize="end"
         android:maxLines="1" />
 
-    <!-- FrameLayout wrapping ImageView (Album Cover) -->
     <FrameLayout
         android:id="@+id/album_image_container"
         android:layout_width="48dp"
@@ -39,7 +38,7 @@
             android:scaleType="centerCrop" />
     </FrameLayout>
 
-    <!-- Track Number TextView -->
+
     <TextView
         android:id="@+id/track_number"
         android:layout_width="0dp"
@@ -50,7 +49,7 @@
         android:textSize="14sp"
         android:padding="8dp" />
 
-    <!-- Track Length TextView -->
+
     <TextView
         android:id="@+id/track_length"
         android:layout_width="0dp"
@@ -61,7 +60,7 @@
         android:textSize="14sp"
         android:padding="8dp" />
 
-    <!-- Features TextView -->
+
     <TextView
         android:id="@+id/features"
         android:layout_width="0dp"

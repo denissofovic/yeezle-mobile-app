@@ -19,3 +19,7 @@ data class CurrentStreak(
 data class Username(
     val username: String
 )
+
+data class GamesWon(
+    val games_won: Int
+)

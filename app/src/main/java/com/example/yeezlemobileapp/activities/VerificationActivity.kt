@@ -1,4 +1,4 @@
-package com.example.yeezlemobileapp
+package com.example.yeezlemobileapp.activities
 
 import android.os.Bundle
 import android.util.Log

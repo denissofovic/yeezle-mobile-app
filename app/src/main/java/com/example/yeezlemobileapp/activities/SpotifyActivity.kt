@@ -1,14 +1,14 @@
-package com.example.yeezlemobileapp
+package com.example.yeezlemobileapp.activities
 
 import REDIRECT_URI
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import authenticateSpotifyUser
-import com.example.yeezlemobileapp.spotify.fetchAlbumTracks
+import com.example.yeezlemobileapp.BuildConfig
+import com.example.yeezlemobileapp.R
 import com.example.yeezlemobileapp.spotify.fetchArtistAlbums
 import exchangeCodeForToken
 

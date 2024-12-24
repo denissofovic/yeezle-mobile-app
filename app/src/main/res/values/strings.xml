@@ -21,4 +21,17 @@
     <string name="select">Select</string>
     <string name="advice">Note: We advise you to be original :)</string>
     <string name="profile_pic_desc">Dummy text\n</string>
+    <string name="about_title">About Yeezle</string>
+    <string name="about_description">
+        You get eight guesses to guess a mystery song from any of Kanye\'s 13 studio albums! \n
+
+        Green in any column indicates a complete match! \n
+
+        Yellow in the  track number column indicates that this attribute is within 2 (tracks), with an arrow hinting if it is higher (↑) or lower (↓). \n
+
+        Yellow in the track length column indicates that the song length is within 30 seconds, with an arrow hinting if it is higher (↑) or lower (↓). \n
+
+        Yellow in the features column indicates that at least one of the featured artists is correct. \n
+    </string>
+    <string name="play">Play</string>
 </resources>

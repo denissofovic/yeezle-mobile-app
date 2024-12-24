@@ -1,4 +1,4 @@
-package com.example.yeezlemobileapp
+package com.example.yeezlemobileapp.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -8,12 +8,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.yeezlemobileapp.R
 import com.example.yeezlemobileapp.data.models.StatItem
 import com.example.yeezlemobileapp.utils.StatsAdapter
 import com.example.yeezlemobileapp.databinding.ActivityDashboardBinding
-import com.example.yeezlemobileapp.supabase.SupabaseAuthHelper
 import com.example.yeezlemobileapp.supabase.SupabasePlayerHelper
 import com.example.yeezlemobileapp.utils.CountdownTimer
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,6 +40,16 @@ class DashboardActivity : AppCompatActivity() {
             redirectToGameActivity()
         }
 
+        handleNavigation()
+        fetchStatsAndUpdateUI()
+
+
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        handleNavigation()
         fetchStatsAndUpdateUI()
     }
 
@@ -52,12 +63,13 @@ class DashboardActivity : AppCompatActivity() {
                     val gamesPlayed = supabasePlayerHelper.getGamesPlayed()
                     val bestStreak = supabasePlayerHelper.getBestStreak()
                     val currentStreak = supabasePlayerHelper.getCurrentStreak()
-                    val gamesLost = gamesPlayed - score
+                    val gamesWon = supabasePlayerHelper.getGamesWon()
+                    val gamesLost = maxOf(0, gamesPlayed - gamesWon)
 
                     listOf(
                         StatItem(R.drawable.ic_dashboard, "Total Score", score),
                         StatItem(R.drawable.ic_dashboard, "Games Played", gamesPlayed),
-                        StatItem(R.drawable.ic_dashboard, "Games Won", score),
+                        StatItem(R.drawable.ic_dashboard, "Games Won", gamesWon),
                         StatItem(R.drawable.ic_dashboard, "Games Lost", gamesLost),
                         StatItem(R.drawable.ic_dashboard, "Current Streak", currentStreak),
                         StatItem(R.drawable.ic_dashboard, "Best Streak", bestStreak)
@@ -111,6 +123,36 @@ class DashboardActivity : AppCompatActivity() {
     private fun redirectToGameActivity() {
         val intent = Intent(this@DashboardActivity, GameActivity::class.java)
         startActivity(intent)
+    }
+
+    private fun handleNavigation(){
+        val bottomNavigationView = binding.bottomNavigationView
+
+        bottomNavigationView.selectedItemId = R.id.navigation_dashboard
+
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_dashboard -> {
+                    true
+                }
+                R.id.navigation_leaderboard -> {
+                    startActivity(Intent(this, LeaderboardActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+                R.id.navigation_profile -> {
+                    startActivity(Intent(this, ProfileActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+                R.id.navigation_about -> {
+                    startActivity(Intent(this, AboutActivity::class.java))
+                    overridePendingTransition(0, 0)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
 

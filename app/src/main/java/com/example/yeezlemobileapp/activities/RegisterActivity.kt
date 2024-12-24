@@ -1,14 +1,10 @@
-package com.example.yeezlemobileapp
+package com.example.yeezlemobileapp.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.provider.ContactsContract.CommonDataKinds.Email
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.yeezlemobileapp.databinding.ActivityLoginBinding
 import com.example.yeezlemobileapp.databinding.ActivityRegisterBinding
-import com.example.yeezlemobileapp.spotify.fetchArtistAlbums
 import com.example.yeezlemobileapp.supabase.SupabaseAuthHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

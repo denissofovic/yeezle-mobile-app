@@ -1,15 +1,14 @@
-package com.example.yeezlemobileapp
+package com.example.yeezlemobileapp.activities
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.yeezlemobileapp.BuildConfig
 import com.example.yeezlemobileapp.databinding.ActivityLoginBinding
 import com.example.yeezlemobileapp.supabase.SupabaseAuthHelper
-import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,16 +25,6 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val sharedPreferences = getSharedPreferences("AuthPrefs", MODE_PRIVATE)
-        val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
-
-        if (isLoggedIn) {
-            startActivity(Intent(this, DashboardActivity::class.java))
-            finish()
-        } else {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-        }
 
         val authorizeAndLogin = intent.getBooleanExtra("authorize_and_login", false)
         if(authorizeAndLogin){
@@ -54,13 +43,7 @@ class LoginActivity : AppCompatActivity() {
                     val success = supabaseAuthHelper.logInUser(email, password)
                     withContext(Dispatchers.Main) {
                         if (success) {
-                            val sharedPreferences = getSharedPreferences("AuthPrefs", MODE_PRIVATE)
-                            with(sharedPreferences.edit()) {
-                                putBoolean("isLoggedIn", true)
-                                apply()
-                            }
-                            redirectToMainActivity()
-
+                            redirectToDashboardActivity()
                         } else {
                             Toast.makeText(this@LoginActivity, "Login failed. Try again.", Toast.LENGTH_LONG).show()
                         }
@@ -94,8 +77,8 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun redirectToMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
+    private fun redirectToDashboardActivity() {
+        val intent = Intent(this, DashboardActivity::class.java)
         intent.putExtra("login_success", true)
         startActivity(intent)
         finish()
