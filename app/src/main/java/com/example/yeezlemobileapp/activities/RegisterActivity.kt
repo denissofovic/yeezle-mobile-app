@@ -14,39 +14,46 @@ import kotlinx.coroutines.withContext
 class RegisterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegisterBinding
     private val supabaseAuthHelper = SupabaseAuthHelper()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.signUpButton.setOnClickListener{
+
+        binding.signUpButton.setOnClickListener {
             val email = binding.email.text.toString()
             val password = binding.password.text.toString()
-            val confirmPassword = binding.password.text.toString()
+            val confirmPassword = binding.confirmPassword.text.toString()
+            val username = binding.username.text.toString()
 
-            if(email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()){
-                Toast.makeText(this, "Fields can't be empty", Toast.LENGTH_LONG).show()
-            }else if(password != confirmPassword){
-                Toast.makeText(this, "Passwords don't match", Toast.LENGTH_LONG).show()
-            }else{
-
-                CoroutineScope(Dispatchers.IO).launch {
-                val success = supabaseAuthHelper.signUpUser(email,password)
-                withContext(Dispatchers.Main) {
-                    if (success) {
-                        redirectToProfileSetupActivity()
-                    } else {
-                        Toast.makeText(this@RegisterActivity, "Sign up failed. Try again.", Toast.LENGTH_LONG).show()
+            when {
+                email.isEmpty() || username.isEmpty() -> {
+                    Toast.makeText(this, "Email and username cannot be empty", Toast.LENGTH_SHORT).show()
+                }
+                password.isEmpty() || confirmPassword.isEmpty() -> {
+                    Toast.makeText(this, "Password fields cannot be empty", Toast.LENGTH_SHORT).show()
+                }
+                password != confirmPassword -> {
+                    Toast.makeText(this, "Passwords don't match", Toast.LENGTH_SHORT).show()
+                }
+                !validUsernameCheck(username) -> {
+                    Toast.makeText(this, "Username must be 4-20 characters long and contain only letters, numbers, or underscores", Toast.LENGTH_LONG).show()
+                }
+                else -> {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val success = supabaseAuthHelper.signUpUser(email, password)
+                        withContext(Dispatchers.Main) {
+                            if (success) {
+                                redirectToVerificationActivity(email)
+                            } else {
+                                Toast.makeText(this@RegisterActivity, "Sign up failed. Try again.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                 }
-
-
-
-                }
-        }
-
+            }
         }
     }
-
 
     private fun redirectToVerificationActivity(email: String) {
         val intent = Intent(this, VerificationActivity::class.java)
@@ -55,11 +62,13 @@ class RegisterActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun redirectToProfileSetupActivity() {
-        val intent = Intent(this, ProfileSetupActivity::class.java)
-        startActivity(intent)
-        finish()
+    private fun validPasswordCheck(password: String): Boolean {
+        val passwordRegex = Regex("^.{8,}\$\n")
+        return passwordRegex.matches(password)
     }
 
-
+    private fun validUsernameCheck(username: String): Boolean {
+        val usernameRegex = Regex("^[a-zA-Z0-9_]{4,20}$")
+        return usernameRegex.matches(username)
+    }
 }

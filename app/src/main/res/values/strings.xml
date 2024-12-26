@@ -34,4 +34,5 @@
         Yellow in the features column indicates that at least one of the featured artists is correct. \n
     </string>
     <string name="play">Play</string>
+    <string name="usernameHint">Username</string>
 </resources>

@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.yeezlemobileapp.R
 import com.example.yeezlemobileapp.databinding.ActivityMainBinding
 import com.example.yeezlemobileapp.supabase.SupabaseAuthHelper
+import com.example.yeezlemobileapp.utils.SharedPreferencesHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,12 +54,9 @@ class ProfileActivity : AppCompatActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 val response = supabaseAuthHelper.logOutUser()
                 if(response){
-                    val sharedPreferences = getSharedPreferences("AuthPrefs", MODE_PRIVATE)
-                    with(sharedPreferences.edit()) {
-                        clear()
-                        apply()
-                    }
+                    SharedPreferencesHelper(this@ProfileActivity).clearLoginInfo()
                     redirectToLoginActivity()
+                    finish()
 
                 }else{
                     Toast.makeText(this@ProfileActivity, "You are not logged in", Toast.LENGTH_LONG).show()

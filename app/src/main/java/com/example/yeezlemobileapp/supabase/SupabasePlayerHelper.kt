@@ -356,4 +356,50 @@ class SupabasePlayerHelper {
         }
     }
 
+    suspend fun getAlreadyPlayed() : Boolean{
+        return try {
+            val currentUser = supabase.auth.retrieveUserForCurrentSession()
+
+            val alreadyPlayed = supabase
+                .from("player")
+                .select(columns = Columns.list("already_played")) {
+                    filter { eq("user_id", currentUser.id) }
+                }
+                .decodeSingle<Map<String, Boolean>>()
+                .get("already_played") ?: false
+
+            Log.d("SupabasePlayerHelper", "$alreadyPlayed")
+
+
+            alreadyPlayed
+        } catch (e: Exception) {
+            Log.e("SupabasePlayerHelper", "Error during already played get: ${e.message}", e)
+            false
+        }
+
+    }
+
+
+    suspend fun setAlreadyPlayed() : Boolean{
+        return try {
+            val currentUser = supabase.auth.retrieveUserForCurrentSession()
+            supabase.from("player").update(
+                {
+                    set("already_played",true)
+                }
+            ) {
+                filter {
+                    eq("user_id", currentUser.id)
+                }
+            }
+
+
+            true
+        } catch (e: Exception) {
+            Log.e("SupabasePlayerHelper", "Error during already played set: ${e.message}", e)
+            false
+        }
+
+    }
+
 }

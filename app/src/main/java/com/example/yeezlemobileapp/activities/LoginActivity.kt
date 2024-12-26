@@ -1,6 +1,8 @@
 package com.example.yeezlemobileapp.activities
 
+import NotificationHelper
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.util.Log
@@ -9,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.yeezlemobileapp.BuildConfig
 import com.example.yeezlemobileapp.databinding.ActivityLoginBinding
 import com.example.yeezlemobileapp.supabase.SupabaseAuthHelper
+import com.example.yeezlemobileapp.utils.SharedPreferencesHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +21,8 @@ import kotlinx.coroutines.withContext
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private val supabaseAuthHelper = SupabaseAuthHelper()
+    private val notificationHelper = NotificationHelper(this)
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,10 +31,17 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
 
+        notificationHelper.createNotificationChannel()
+        if (!notificationHelper.hasNotificationPermission()) {
+            notificationHelper.requestNotificationPermission(this)
+        }
+
+
         val authorizeAndLogin = intent.getBooleanExtra("authorize_and_login", false)
         if(authorizeAndLogin){
             Toast.makeText(this, "Please verify your email", Toast.LENGTH_SHORT).show()
         }
+
 
 
         binding.loginButton.setOnClickListener {
@@ -43,6 +55,7 @@ class LoginActivity : AppCompatActivity() {
                     val success = supabaseAuthHelper.logInUser(email, password)
                     withContext(Dispatchers.Main) {
                         if (success) {
+                            SharedPreferencesHelper(this@LoginActivity).saveLoginInfo(email,password)
                             redirectToDashboardActivity()
                         } else {
                             Toast.makeText(this@LoginActivity, "Login failed. Try again.", Toast.LENGTH_LONG).show()
@@ -75,6 +88,14 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this@LoginActivity, "Account successfully verified", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        notificationHelper.handlePermissionResult(requestCode, grantResults)
     }
 
     private fun redirectToDashboardActivity() {

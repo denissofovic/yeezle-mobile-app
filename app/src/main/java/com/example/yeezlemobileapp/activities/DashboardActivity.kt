@@ -1,11 +1,20 @@
 package com.example.yeezlemobileapp.activities
 
+import NotificationHelper
+import android.Manifest
+import com.example.yeezlemobileapp.StepCounterService
+import com.example.yeezlemobileapp.TestService
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yeezlemobileapp.R
@@ -14,7 +23,7 @@ import com.example.yeezlemobileapp.utils.StatsAdapter
 import com.example.yeezlemobileapp.databinding.ActivityDashboardBinding
 import com.example.yeezlemobileapp.supabase.SupabasePlayerHelper
 import com.example.yeezlemobileapp.utils.CountdownTimer
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.yeezlemobileapp.utils.SharedPreferencesHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,6 +33,8 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDashboardBinding
     private val supabasePlayerHelper = SupabasePlayerHelper()
     private val handler = Handler()
+    private val notificationHelper = NotificationHelper(this)
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,10 +42,52 @@ class DashboardActivity : AppCompatActivity() {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), 100)
+            } else {
+                startStepCounterService()
+            }
+        } else {
+            startStepCounterService()
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
+            }
+        }
+
+        /*
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    101
+                )
+            }
+        }
+        */
+
+
+
+
+        /*
         val loginSuccess = intent.getBooleanExtra("login_success", false)
         if (loginSuccess) {
             Toast.makeText(this, "Successfully logged in", Toast.LENGTH_SHORT).show()
         }
+        */
 
         binding.fabPlay.setOnClickListener {
             redirectToGameActivity()
@@ -43,8 +96,6 @@ class DashboardActivity : AppCompatActivity() {
         handleNavigation()
         fetchStatsAndUpdateUI()
 
-
-
     }
 
     override fun onResume() {
@@ -52,6 +103,35 @@ class DashboardActivity : AppCompatActivity() {
         handleNavigation()
         fetchStatsAndUpdateUI()
     }
+
+    private fun startStepCounterService() {
+        Log.d("DashboardActivity", "Attempting to start StepCounterService")
+        val serviceIntent = Intent(this, StepCounterService::class.java)
+        ContextCompat.startForegroundService(this, serviceIntent)
+    }
+
+
+    private fun stopStepCounterService() {
+        val serviceIntent = Intent(this, StepCounterService::class.java)
+        stopService(serviceIntent)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startStepCounterService()
+        } else {
+            Toast.makeText(this, "Permission required for step counter", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+
+
 
     @SuppressLint("SetTextI18n")
     private fun fetchStatsAndUpdateUI() {
@@ -99,6 +179,13 @@ class DashboardActivity : AppCompatActivity() {
                 val currentTimeMillis = System.currentTimeMillis()
                 val timeElapsed = (currentTimeMillis - referenceTimeMillis) % (24 * 60 * 60 * 1000L)
                 val remainingTimeMillis = (24 * 60 * 60 * 1000L) - timeElapsed
+
+                if(remainingTimeMillis <= 1000){
+                    SharedPreferencesHelper(this@DashboardActivity).clearGuessItems()
+                    notificationHelper.sendNotification("Game time", "New song just got generated")
+                    StepCounterService().resetStepCount()
+                    StepCounterService().ONCE_FLAG = false
+                }
 
                 val hours = TimeUnit.MILLISECONDS.toHours(remainingTimeMillis)
                 val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingTimeMillis) % 60

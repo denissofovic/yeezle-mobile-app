@@ -1,14 +1,19 @@
 package com.example.yeezlemobileapp.activities
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -20,6 +25,7 @@ import com.example.yeezlemobileapp.databinding.ActivityGameBinding
 import com.example.yeezlemobileapp.supabase.SupabasePlayerHelper
 import com.example.yeezlemobileapp.supabase.SupabaseSpotifyHelper
 import com.example.yeezlemobileapp.utils.GuessItemAdapter
+import com.example.yeezlemobileapp.utils.SharedPreferencesHelper
 import com.example.yeezlemobileapp.utils.TrackAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +38,7 @@ class GameActivity: AppCompatActivity() {
     private lateinit var binding: ActivityGameBinding
     private val supabaseSpotifyHelper = SupabaseSpotifyHelper()
     private val supabasePlayerHelper = SupabasePlayerHelper()
+
     private var tracks : List<Track>? = null
     private var albums : List<Album>? = null
     private var guessingTrack : Track? = null
@@ -43,30 +50,60 @@ class GameActivity: AppCompatActivity() {
     private var CORRECT_TRACK_NUMBER = 0
     private var CORRECT_LENGTH = 0
     private var CORRECT_FEATURES = 0
+    private var ALREADY_PLAYED = false
 
     private var LENGTH_ORDER = 0
     private var TRACK_NUMBER_ORDER = 0
 
 
     private var GAME_OVER = false
-    private var NUMBER_OF_GUESSES = 8 //zavisi od koraka
+    private var NUMBER_OF_GUESSES = 8
+
+    private var SPECIAL_GUESS = false
+
+    private var guessItems = mutableListOf<GuessItem>()
+    private lateinit var guessItemAdapter: GuessItemAdapter
 
 
+    private var stepGoalReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == "STEP_COUNT_GOAL_ACHIEVED") {
+                SPECIAL_GUESS = true
+                Toast.makeText(context, "You've unlocked a special clue!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
+        if(SPECIAL_GUESS == true){
+            binding.specialClueButton.visibility = View.VISIBLE
+        }else{
+            binding.specialClueButton.visibility = View.GONE
+        }
+
+
+        val filter = IntentFilter("STEP_COUNT_GOAL_ACHIEVED")
+        registerReceiver(stepGoalReceiver, filter, RECEIVER_NOT_EXPORTED)
+
         fetchData()
         handleNavigation()
-        val guessItems = mutableListOf<GuessItem>()
 
 
-        val guessItemAdapter = GuessItemAdapter(guessItems)
+
+        guessItems = SharedPreferencesHelper(this).getGuessItems().toMutableList()
+
+
+        guessItemAdapter = GuessItemAdapter(guessItems)
         val guessRecycleView = binding.guessRecView
         guessRecycleView.layoutManager = LinearLayoutManager(this)
         guessRecycleView.adapter = guessItemAdapter
+
+
 
 
 
@@ -134,8 +171,12 @@ class GameActivity: AppCompatActivity() {
                         CoroutineScope(Dispatchers.IO).launch {
                             updateStats(gameWon, guessItems.size)
                         }
+                        binding.songInput.hint = "Come back tomorrow :)"
+                        binding.songInput.isEnabled = false;
+                        binding.guessButton.isEnabled = false;
                         showGameEndScreen()
                         GAME_OVER = true
+
                     }
                 } else {
                     Toast.makeText(
@@ -151,10 +192,33 @@ class GameActivity: AppCompatActivity() {
 
 
     }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if(ALREADY_PLAYED){
+            binding.songInput.hint = "Come back tomorrow :)"
+            binding.songInput.isEnabled = false;
+            binding.guessButton.isEnabled = false;
+
+        }
 
 
 
     }
+
+    override fun onPause() {
+        super.onPause()
+        SharedPreferencesHelper(this@GameActivity).saveGuessItems(guessItems)
+    }
+
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(stepGoalReceiver)
+    }
+
 
 
 
@@ -205,6 +269,7 @@ class GameActivity: AppCompatActivity() {
             supabasePlayerHelper.resetStreak()
 
         }
+        supabasePlayerHelper.setAlreadyPlayed()
         supabasePlayerHelper.incrementGamesPlayed()
 
     }
@@ -238,6 +303,15 @@ class GameActivity: AppCompatActivity() {
     private fun fetchData() {
         lifecycleScope.launch {
             try {
+                ALREADY_PLAYED = supabasePlayerHelper.getAlreadyPlayed()
+                if(ALREADY_PLAYED == true){
+                    binding.songInput.hint = "Come back tomorrow :)"
+                    binding.songInput.isEnabled = false;
+                    binding.guessButton.isEnabled = false;
+                    binding.guessButton.isVisible = false;
+
+                }
+
                 tracks = supabaseSpotifyHelper.getTracks()
                 albums = supabaseSpotifyHelper.getAlbums()
                 guessingTrack = supabaseSpotifyHelper.getGuessingTrack()
@@ -340,7 +414,7 @@ class GameActivity: AppCompatActivity() {
     private fun handleNavigation(){
         val bottomNavigationView = binding.bottomNavigationView
 
-
+        bottomNavigationView.selectedItemId = -1
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_dashboard -> {
