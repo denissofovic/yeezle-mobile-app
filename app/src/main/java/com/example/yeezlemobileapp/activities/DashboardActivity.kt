@@ -2,8 +2,7 @@ package com.example.yeezlemobileapp.activities
 
 import NotificationHelper
 import android.Manifest
-import com.example.yeezlemobileapp.StepCounterService
-import com.example.yeezlemobileapp.TestService
+import com.example.yeezlemobileapp.services.StepCounterService
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -42,19 +41,11 @@ class DashboardActivity : AppCompatActivity() {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        askForPermissions()
+        handleNavigation()
+        fetchStatsAndUpdateUI()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), 100)
-            } else {
-                startStepCounterService()
-            }
-        } else {
-            startStepCounterService()
-        }
-
+        /*
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED
@@ -63,38 +54,7 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
 
-        /*
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    101
-                )
-            }
-        }
         */
-
-
-
-
-        /*
-        val loginSuccess = intent.getBooleanExtra("login_success", false)
-        if (loginSuccess) {
-            Toast.makeText(this, "Successfully logged in", Toast.LENGTH_SHORT).show()
-        }
-        */
-
-        binding.fabPlay.setOnClickListener {
-            redirectToGameActivity()
-        }
-
-        handleNavigation()
-        fetchStatsAndUpdateUI()
 
     }
 
@@ -111,9 +71,19 @@ class DashboardActivity : AppCompatActivity() {
     }
 
 
-    private fun stopStepCounterService() {
-        val serviceIntent = Intent(this, StepCounterService::class.java)
-        stopService(serviceIntent)
+    private fun askForPermissions(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), 100)
+            } else {
+                startStepCounterService()
+            }
+        } else {
+            startStepCounterService()
+        }
+
     }
 
     override fun onRequestPermissionsResult(
@@ -207,12 +177,12 @@ class DashboardActivity : AppCompatActivity() {
         handler.removeCallbacksAndMessages(null)
     }
 
-    private fun redirectToGameActivity() {
-        val intent = Intent(this@DashboardActivity, GameActivity::class.java)
-        startActivity(intent)
-    }
-
     private fun handleNavigation(){
+
+        binding.fabPlay.setOnClickListener {
+            startActivity(Intent(this@DashboardActivity, GameActivity::class.java))
+        }
+
         val bottomNavigationView = binding.bottomNavigationView
 
         bottomNavigationView.selectedItemId = R.id.navigation_dashboard

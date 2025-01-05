@@ -19,7 +19,7 @@ const val REDIRECT_URI = BuildConfig.REDIRECT_URI
 
 interface SpotifyTokenApi {
     @FormUrlEncoded
-    @POST("api/token") // Note: Base URL is set in Retrofit
+    @POST("api/token")
     fun getAccessToken(
         @Field("grant_type") grantType: String,
         @Field("code") code: String,
@@ -31,19 +31,19 @@ interface SpotifyTokenApi {
 
 
 
-fun authenticateSpotifyUser(): Intent {
+fun authenticateSpotifyUser(redirectUri: String): Intent {
 
     val authUrl = "https://accounts.spotify.com/authorize" +
             "?client_id=$CLIENT_ID" +
             "&response_type=code" +
-            "&redirect_uri=$REDIRECT_URI" +
+            "&redirect_uri=$redirectUri" +
             "&scope=user-read-private"
 
     return Intent(Intent.ACTION_VIEW, Uri.parse(authUrl))
 }
 
 
-fun exchangeCodeForToken(authorizationCode: String, context: Context, callback: (String) -> Unit) {
+fun exchangeCodeForToken(authorizationCode: String,redirectUri: String, context: Context, callback: (String) -> Unit) {
     Log.d("SpotifyTokenApi", "Starting exchange code for token with authorization code: $authorizationCode")
 
     val retrofit = Retrofit.Builder()
@@ -55,7 +55,7 @@ fun exchangeCodeForToken(authorizationCode: String, context: Context, callback: 
     val call = tokenApi.getAccessToken(
         grantType = "authorization_code",
         code = authorizationCode,
-        redirectUri = REDIRECT_URI,
+        redirectUri = redirectUri,
         clientId = CLIENT_ID,
         clientSecret = CLIENT_SECRET
     )

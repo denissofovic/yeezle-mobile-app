@@ -1,9 +1,8 @@
 package com.example.yeezlemobileapp.activities
 
-import android.content.BroadcastReceiver
-import android.content.Context
+
+
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -22,16 +21,33 @@ import com.example.yeezlemobileapp.data.models.Album
 import com.example.yeezlemobileapp.data.models.GuessItem
 import com.example.yeezlemobileapp.data.models.Track
 import com.example.yeezlemobileapp.databinding.ActivityGameBinding
+import com.example.yeezlemobileapp.spotify.fetchTrackInfo
 import com.example.yeezlemobileapp.supabase.SupabasePlayerHelper
 import com.example.yeezlemobileapp.supabase.SupabaseSpotifyHelper
 import com.example.yeezlemobileapp.utils.GuessItemAdapter
 import com.example.yeezlemobileapp.utils.SharedPreferencesHelper
+import com.example.yeezlemobileapp.utils.StepGoalAchievedEvent
 import com.example.yeezlemobileapp.utils.TrackAdapter
+import exchangeCodeForToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import kotlin.math.abs
-
+import authenticateSpotifyUser
+import com.example.yeezlemobileapp.BuildConfig.REDIRECT_URI_PLAYBACK
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.ALREADY_PLAYED
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.CORRECT_ALBUM
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.CORRECT_FEATURES
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.CORRECT_LENGTH
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.CORRECT_TRACK_NUMBER
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.GAME_OVER
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.GAME_WON
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.LENGTH_ORDER
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.NUMBER_OF_GUESSES
+import com.example.yeezlemobileapp.activities.GameActivity.GameState.TRACK_NUMBER_ORDER
 
 
 class GameActivity: AppCompatActivity() {
@@ -44,66 +60,48 @@ class GameActivity: AppCompatActivity() {
     private var guessingTrack : Track? = null
     private var selectedTrack: Track? = null
 
-
-    private var GAME_WON = false
-    private var CORRECT_ALBUM = 0
-    private var CORRECT_TRACK_NUMBER = 0
-    private var CORRECT_LENGTH = 0
-    private var CORRECT_FEATURES = 0
-    private var ALREADY_PLAYED = false
-
-    private var LENGTH_ORDER = 0
-    private var TRACK_NUMBER_ORDER = 0
-
-
-    private var GAME_OVER = false
-    private var NUMBER_OF_GUESSES = 8
-
-    private var SPECIAL_GUESS = false
-
     private var guessItems = mutableListOf<GuessItem>()
     private lateinit var guessItemAdapter: GuessItemAdapter
 
+    object GameState {
+        var SPECIAL_GUESS = false
+        var GAME_WON = false
+        var CORRECT_ALBUM = 0
+        var CORRECT_TRACK_NUMBER = 0
+        var CORRECT_LENGTH = 0
+        var CORRECT_FEATURES = 0
+        var ALREADY_PLAYED = false
 
-    private var stepGoalReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == "STEP_COUNT_GOAL_ACHIEVED") {
-                SPECIAL_GUESS = true
-                Toast.makeText(context, "You've unlocked a special clue!", Toast.LENGTH_SHORT).show()
-            }
-        }
+        var LENGTH_ORDER = 0
+        var TRACK_NUMBER_ORDER = 0
+
+
+        var GAME_OVER = false
+        var NUMBER_OF_GUESSES = 8
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
-        if(SPECIAL_GUESS == true){
-            binding.specialClueButton.visibility = View.VISIBLE
-        }else{
-            binding.specialClueButton.visibility = View.GONE
-        }
-
-
-        val filter = IntentFilter("STEP_COUNT_GOAL_ACHIEVED")
-        registerReceiver(stepGoalReceiver, filter, RECEIVER_NOT_EXPORTED)
-
+        EventBus.getDefault().register(this)
         fetchData()
         handleNavigation()
 
-
-
         guessItems = SharedPreferencesHelper(this).getGuessItems().toMutableList()
 
+        binding.specialClueButton.visibility = if (GameState.SPECIAL_GUESS) View.VISIBLE else View.GONE
+        binding.specialClueButton.setOnClickListener{
+            val intent= authenticateSpotifyUser(REDIRECT_URI_PLAYBACK)
+            startActivity(intent)
+        }
 
         guessItemAdapter = GuessItemAdapter(guessItems)
         val guessRecycleView = binding.guessRecView
         guessRecycleView.layoutManager = LinearLayoutManager(this)
         guessRecycleView.adapter = guessItemAdapter
-
-
 
 
 
@@ -172,10 +170,12 @@ class GameActivity: AppCompatActivity() {
                             updateStats(gameWon, guessItems.size)
                         }
                         binding.songInput.hint = "Come back tomorrow :)"
-                        binding.songInput.isEnabled = false;
-                        binding.guessButton.isEnabled = false;
+                        binding.songInput.isEnabled = false
+                        binding.guessButton.isEnabled = false
                         showGameEndScreen()
                         GAME_OVER = true
+                        GameState.SPECIAL_GUESS = false
+                        binding.specialClueButton.visibility = View.GONE
 
                     }
                 } else {
@@ -191,19 +191,49 @@ class GameActivity: AppCompatActivity() {
 
 
 
+
+
     }
     }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.data?.let { uri ->
+            Log.d("GameActivity", "onNewIntent called with URI: $uri")
+
+            if (uri.toString().startsWith(REDIRECT_URI_PLAYBACK)) {
+                val authorizationCode = uri.getQueryParameter("code")
+                Log.d("GameActivity", "Authorization code: $authorizationCode")
+
+                authorizationCode?.let { code ->
+                    exchangeCodeForToken(code, REDIRECT_URI_PLAYBACK, this) { result ->
+                        Log.d("GameActivity", "Access Token Retrieved: $result")
+
+                        guessingTrack?.let {
+                            Log.d("GameActivity", "Guessing Track: $it")
+                            fetchTrackInfo(it.spotify_id, result)
+                        } ?: run {
+                            Log.e("GameActivity", "Guessing track is null. Cannot fetch track info.")
+                        }
+                    }
+                } ?: run {
+                    Log.e("GameActivity", "Failed to retrieve authorization code.")
+                }
+            } else {
+                Log.e("GameActivity", "URI does not match REDIRECT_URI: $uri")
+            }
+        }
+    }
+
 
     override fun onResume() {
         super.onResume()
         if(ALREADY_PLAYED){
             binding.songInput.hint = "Come back tomorrow :)"
-            binding.songInput.isEnabled = false;
-            binding.guessButton.isEnabled = false;
-
+            binding.songInput.isEnabled = false
+            binding.guessButton.isEnabled = false
         }
-
-
+        binding.specialClueButton.visibility = if (GameState.SPECIAL_GUESS) View.VISIBLE else View.GONE
 
     }
 
@@ -212,15 +242,10 @@ class GameActivity: AppCompatActivity() {
         SharedPreferencesHelper(this@GameActivity).saveGuessItems(guessItems)
     }
 
-
-
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(stepGoalReceiver)
+        EventBus.getDefault().unregister(this)
     }
-
-
-
 
     private fun showGameEndScreen() {
         val gameEndDialogView = layoutInflater.inflate(R.layout.dialog_game_end, null)
@@ -251,15 +276,12 @@ class GameActivity: AppCompatActivity() {
         closeButton.setOnClickListener {
             dialog.dismiss()
         }
-
         dialog.show()
 
     }
 
     private suspend fun updateStats(gameWon : Boolean, guesses : Int){
         if(gameWon == true){
-
-
             val newScore = supabasePlayerHelper.getScore() + 1000 - (100 * guesses)
             supabasePlayerHelper.incrementStreak()
             supabasePlayerHelper.incrementGamesWon()
@@ -267,7 +289,6 @@ class GameActivity: AppCompatActivity() {
 
         }else{
             supabasePlayerHelper.resetStreak()
-
         }
         supabasePlayerHelper.setAlreadyPlayed()
         supabasePlayerHelper.incrementGamesPlayed()
@@ -276,7 +297,6 @@ class GameActivity: AppCompatActivity() {
 
     private fun checkGuessedTrack(guess: Track?) : Boolean {
         if(guessingTrack != null && guess != null) {
-
             return if (guessingTrack!!.id == guess.id) {
                 GAME_WON = true
                 CORRECT_ALBUM = 1
@@ -291,13 +311,8 @@ class GameActivity: AppCompatActivity() {
                 checkCorrectFeatures(guess, guessingTrack!!)
                 GAME_WON
             }
-
-
-
         }
-
         return false
-
     }
 
     private fun fetchData() {
@@ -306,9 +321,9 @@ class GameActivity: AppCompatActivity() {
                 ALREADY_PLAYED = supabasePlayerHelper.getAlreadyPlayed()
                 if(ALREADY_PLAYED == true){
                     binding.songInput.hint = "Come back tomorrow :)"
-                    binding.songInput.isEnabled = false;
-                    binding.guessButton.isEnabled = false;
-                    binding.guessButton.isVisible = false;
+                    binding.songInput.isEnabled = false
+                    binding.guessButton.isEnabled = false
+                    binding.guessButton.isVisible = false
 
                 }
 
@@ -355,8 +370,6 @@ class GameActivity: AppCompatActivity() {
             }else{
                 0
             }
-
-
         }
     }
 
@@ -443,4 +456,18 @@ class GameActivity: AppCompatActivity() {
     }
 
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onStepGoalAchieved(event: StepGoalAchievedEvent) {
+        if (!GameState.SPECIAL_GUESS) {
+            GameState.SPECIAL_GUESS = true
+            binding.specialClueButton.visibility = View.VISIBLE
+        }
+
+    }
+
+
 }
+
+
+
+

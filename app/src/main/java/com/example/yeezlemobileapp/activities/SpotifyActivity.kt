@@ -21,7 +21,7 @@ public class SpotifyActivity : AppCompatActivity(){
     override fun onCreate(savedInstanceState:Bundle?){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_spotify)
-        val intent=authenticateSpotifyUser()
+        val intent=authenticateSpotifyUser(REDIRECT_URI)
         authSpotifyButton = findViewById(R.id.authorizeSpotifyButton)
         authSpotifyButton.setOnClickListener{
             startActivity(intent)
@@ -38,19 +38,11 @@ public class SpotifyActivity : AppCompatActivity(){
                 Log.d("SpotifyActivity", "Authorization code: $authorizationCode")
 
                 authorizationCode?.let { code ->
-                    exchangeCodeForToken(code, this) { result ->
+                    exchangeCodeForToken(code, REDIRECT_URI,this) { result ->
+
                         runOnUiThread {
-                            if (result != null) {
-                                Log.d("SpotifyActivity", "Access token: $result")
-
-                                fetchArtistAlbums(ARTIST_ID, result)
-
-
-
-
-                            } else {
-                                Log.e("SpotifyActivity", "Failed to retrieve access token.")
-                            }
+                            Log.d("SpotifyActivity", "Access token: $result")
+                            fetchArtistAlbums(ARTIST_ID, result)
                         }
                     }
                 } ?: run {

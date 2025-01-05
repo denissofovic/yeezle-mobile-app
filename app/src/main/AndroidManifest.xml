@@ -52,9 +52,19 @@
             android:exported="true" />
         <activity android:name=".activities.ProfileActivity"
             android:exported="true" />
-        <activity android:name=".activities.GameActivity"
-            android:exported="true" />
 
+
+        <activity android:name=".activities.GameActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="yeezle" android:host="playback" />
+        </intent-filter>
+
+        </activity>
 
         <!-- Other Activities (Register, Forgot Password, etc.) -->
         <activity android:name=".activities.RegisterActivity" />
@@ -93,9 +103,10 @@
 
         <receiver android:name=".receivers.RestartServiceReceiver" />
 
-        <service android:name=".StepCounterService"
+        <service android:name=".services.StepCounterService"
             android:exported="true"
-            android:foregroundServiceType="shortService"/>
+            android:foregroundServiceType="shortService"
+            android:attributionTags="com.example.yeezlemobileapp" />
 
 
 

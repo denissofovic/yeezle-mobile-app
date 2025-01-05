@@ -25,8 +25,8 @@ class NotificationHelper(private val context: Context) {
 
     fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "My Notifications"
-            val description = "Notification Channel for My App"
+            val name = "Yeezle notifications"
+            val description = "Notification Channel for Yeezle"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
 
             val channel = NotificationChannel(CHANNEL_ID, name, importance)
@@ -43,7 +43,7 @@ class NotificationHelper(private val context: Context) {
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
                     PackageManager.PERMISSION_GRANTED
         } else {
-            true // Permissions not required for Android < 13
+            true
         }
     }
 

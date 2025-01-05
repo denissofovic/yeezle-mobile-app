@@ -2,6 +2,7 @@ package com.example.yeezlemobileapp.spotify
 import android.util.Log
 import com.example.yeezlemobileapp.BuildConfig
 import com.example.yeezlemobileapp.data.models.AlbumsResponse
+import com.example.yeezlemobileapp.data.models.TrackInfoResponse
 import com.example.yeezlemobileapp.data.models.TracksResponse
 import com.example.yeezlemobileapp.supabase.SupabaseSpotifyHelper
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +33,14 @@ interface SpotifyApiService {
         @Query("market") market: String? = "EN",
         @Header("Authorization") accessToken: String
     ): Call<TracksResponse>
+
+
+    @GET("v1/tracks/{id}")
+    fun getTrackInfo(
+        @Path("id") trackId: String,
+        @Query("market") market: String? = "EN",
+        @Header("Authorization") accessToken: String
+    ): Call<TrackInfoResponse>
 }
 
 object RetrofitClient {
@@ -116,4 +125,30 @@ fun fetchAlbumTracks(albumId: String, accessToken: String) {
             Log.e("SpotifyApiService", "Failure occurred: ${t.message}")
         }
     })
+
+}
+
+fun fetchTrackInfo(trackId: String, accessToken: String) {
+    Log.d("SpotifyApiService", "fetchTrackInfo called with trackId: $trackId and accessToken: $accessToken")
+
+    val service = RetrofitClient.instance
+
+    service.getTrackInfo(trackId, accessToken = "Bearer $accessToken").enqueue(object : Callback<TrackInfoResponse> {
+        override fun onResponse(call: Call<TrackInfoResponse>, response: Response<TrackInfoResponse>) {
+            if (response.isSuccessful) {
+                val track = response.body()
+
+                Log.d("SpotifyApiService", "$track")
+
+
+            } else {
+                Log.e("SpotifyApiService", "Error occurred: ${response.errorBody()?.string()}")
+            }
+        }
+
+        override fun onFailure(call: Call<TrackInfoResponse>, t: Throwable) {
+            Log.e("SpotifyApiService", "Failure occurred: ${t.message}")
+        }})
+
+
 }

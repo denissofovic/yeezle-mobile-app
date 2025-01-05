@@ -2,7 +2,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt") // Add this line to enable KAPT for Room annotation processing
+    id("kotlin-kapt")
 }
 
 android {
@@ -13,6 +13,9 @@ android {
         buildConfig = true
         dataBinding = true
     }
+
+
+
 
     defaultConfig {
         applicationId = "com.example.yeezlemobileapp"
@@ -34,6 +37,7 @@ android {
         buildConfigField("String", "DATABASE_VERSION", "\"${project.findProperty("DATABASE_VERSION")}\"")
         buildConfigField("String", "REDIRECT_URI_AUTH", "\"${project.findProperty("REDIRECT_URI_AUTH")}\"")
         buildConfigField("String", "REDIRECT_URI_RESET", "\"${project.findProperty("REDIRECT_URI_RESET")}\"")
+        buildConfigField("String", "REDIRECT_URI_PLAYBACK", "\"${project.findProperty("REDIRECT_URI_PLAYBACK")}\"")
     }
 
     buildTypes {
@@ -94,9 +98,16 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.12.0")
     kapt("com.github.bumptech.glide:compiler:4.12.0")
 
+    // Event bus
+    implementation("org.greenrobot:eventbus:3.2.0")
+
+
+
     // Testing dependencies
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+
+
 }

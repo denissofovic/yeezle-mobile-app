@@ -1,6 +1,6 @@
 package com.example.yeezlemobileapp.receivers
 
-import com.example.yeezlemobileapp.StepCounterService
+import com.example.yeezlemobileapp.services.StepCounterService
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent

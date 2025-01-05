@@ -5,8 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.yeezlemobileapp.R
 import com.example.yeezlemobileapp.databinding.ActivityAboutBinding
-import com.example.yeezlemobileapp.databinding.ActivityDashboardBinding
-import com.example.yeezlemobileapp.databinding.ActivityLeaderboardBinding
+
 
 class AboutActivity : AppCompatActivity() {
 

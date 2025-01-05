@@ -1,9 +1,9 @@
-package com.example.yeezlemobileapp
+package com.example.yeezlemobileapp.services
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -15,12 +15,13 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.example.yeezlemobileapp.activities.DashboardActivity
+import com.example.yeezlemobileapp.activities.GameActivity
 import com.example.yeezlemobileapp.receivers.RestartServiceReceiver
+import com.example.yeezlemobileapp.utils.StepGoalAchievedEvent
+import org.greenrobot.eventbus.EventBus
 
 class StepCounterService : Service(), SensorEventListener {
 
@@ -29,6 +30,7 @@ class StepCounterService : Service(), SensorEventListener {
     private var stepCount = 0
     private val STEP_TRESHOLD = 15
     var ONCE_FLAG = false
+
 
     override fun onCreate() {
         super.onCreate()
@@ -109,15 +111,23 @@ class StepCounterService : Service(), SensorEventListener {
 
 
     private fun onStepsExceeded(context:Context) {
-        val intent = Intent("STEP_COUNT_GOAL_ACHIEVED")
-        context.sendBroadcast(intent)
+        EventBus.getDefault().post(StepGoalAchievedEvent())
 
+
+        val intent = Intent(context, GameActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         val builder = NotificationCompat.Builder(this, "step_counter_channel")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("Goal Achieved!")
             .setContentText("You have unlocked special clue for today!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
 
         val notificationManager = NotificationManagerCompat.from(this)
         if (ActivityCompat.checkSelfPermission(
