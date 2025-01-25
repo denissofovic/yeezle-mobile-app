@@ -5,7 +5,7 @@
     <string name="emailHint">Email</string>
     <string name="yeezleLogo">Y E E Z L E</string>
     <string name="forgot_password"><a href="forgot">Forgot password?</a></string>
-    <string name="already_have_an_account">Already have an account? Log In</string>
+    <string name="already_have_an_account">Already have an account? <a href="login">Log In</a></string>
     <string name="sign_up">Sign Up</string>
     <string name="confirm_password">Confirm password</string>
     <string name="username">Username</string>

@@ -28,58 +28,77 @@ class StepCounterService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var stepSensor: Sensor? = null
     private var stepCount = 0
-    private val STEP_TRESHOLD = 15
+    private var initialStepCount = -1
+    private val STEP_THRESHOLD = 15
     var ONCE_FLAG = false
-
 
     override fun onCreate() {
         super.onCreate()
-        Log.d("StepCounterService", "onCreate called")
-        try {
-            createNotificationChannel()
-            val notification = NotificationCompat.Builder(this, "step_counter_channel")
-                .setContentTitle("Step Counter Service")
-                .setContentText("Counting your steps...")
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .build()
-            startForeground(1, notification)
-            Log.d("StepCounterService", "Foreground started")
+        Log.d("StepCounterService", "Service created")
 
-            sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-            if (stepSensor != null) {
-                sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
-                Log.d("StepCounterService", "Sensor registered")
-            } else {
-                Log.d("StepCounterService", "No step sensor available")
-                stopSelf()
-            }
+        try {
+            setupNotification()
+            initializeStepSensor()
         } catch (e: Exception) {
-            Log.e("StepCounterService", "Error in onCreate: ${e.message}")
+            Log.e("StepCounterService", "Error during service creation: ${e.message}")
             stopSelf()
         }
     }
 
+    private fun setupNotification() {
+        createNotificationChannel()
+        val notification = NotificationCompat.Builder(this, "step_counter_channel")
+            .setContentTitle("Step Counter Service")
+            .setContentText("Counting your steps...")
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+        startForeground(1, notification)
+    }
 
-    private var initialStepCount = -1
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "step_counter_channel",
+                "Step Counter",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Channel for step counter notifications"
+            }
+            getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
+        }
+    }
+
+    private fun initializeStepSensor() {
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+
+        if (stepSensor != null) {
+            sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_UI)
+            Log.d("StepCounterService", "Step sensor registered")
+        } else {
+            Log.e("StepCounterService", "No step sensor available")
+            stopSelf()
+        }
+    }
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_STEP_COUNTER) {
-            val currentStepCount = event.values[0].toInt()
+            handleStepEvent(event.values[0].toInt())
+        }
+    }
 
-            if (initialStepCount == -1) {
-                initialStepCount = currentStepCount
-            }
+    private fun handleStepEvent(currentStepCount: Int) {
+        if (initialStepCount == -1) {
+            initialStepCount = currentStepCount
+        }
 
-            stepCount = currentStepCount - initialStepCount
+        stepCount = currentStepCount - initialStepCount
+        Log.d("StepCounterService", "Steps counted: $stepCount")
 
-            if (stepCount > STEP_TRESHOLD && ONCE_FLAG == false) {
-                onStepsExceeded(this)
-                ONCE_FLAG = true
-            }
-
-            Log.d("StepCounterService", "Total steps counted: $stepCount")
+        if (stepCount > STEP_THRESHOLD && !ONCE_FLAG) {
+            notifyStepGoalAchieved()
+            ONCE_FLAG = true
         }
     }
 
@@ -89,71 +108,55 @@ class StepCounterService : Service(), SensorEventListener {
         stepCount = 0
     }
 
-
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "step_counter_channel",
-                "Step Counter",
-                NotificationManager.IMPORTANCE_LOW
-            )
-            channel.description = "Channel for step counter notifications"
-
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
-        }
+    private fun notifyStepGoalAchieved() {
+        EventBus.getDefault().post(StepGoalAchievedEvent())
+        sendGoalNotification()
     }
 
-
-
-
-    private fun onStepsExceeded(context:Context) {
-        EventBus.getDefault().post(StepGoalAchievedEvent())
-
-
-        val intent = Intent(context, GameActivity::class.java)
+    private fun sendGoalNotification() {
+        val intent = Intent(this, GameActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
-            context,
+            this,
             0,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val builder = NotificationCompat.Builder(this, "step_counter_channel")
+
+        val notification = NotificationCompat.Builder(this, "step_counter_channel")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("Goal Achieved!")
-            .setContentText("You have unlocked special clue for today!")
+            .setContentText("You have unlocked a special clue for today!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .build()
 
-        val notificationManager = NotificationManagerCompat.from(this)
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
-
-            return
+            NotificationManagerCompat.from(this).notify(2, notification)
+        } else {
+            Log.w("StepCounterService", "Notification permission not granted")
         }
-        notificationManager.notify(2, builder.build())
-
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         super.onDestroy()
-        val broadcastIntent = Intent(this, RestartServiceReceiver::class.java)
-        sendBroadcast(broadcastIntent)
+        sendRestartBroadcast()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
+        sendRestartBroadcast()
+    }
+
+    private fun sendRestartBroadcast() {
         val broadcastIntent = Intent(this, RestartServiceReceiver::class.java)
         sendBroadcast(broadcastIntent)
     }

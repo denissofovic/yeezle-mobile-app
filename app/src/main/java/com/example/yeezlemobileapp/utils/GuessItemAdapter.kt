@@ -1,8 +1,6 @@
 package com.example.yeezlemobileapp.utils
 
 import android.graphics.Color
-import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,12 +15,15 @@ import com.example.yeezlemobileapp.data.models.GuessItem
 class GuessItemAdapter(private val guessItems: MutableList<GuessItem>) :
     RecyclerView.Adapter<GuessItemAdapter.GuessViewHolder>() {
 
-        private  val YELLOW = "#FFC107"
-        private  val GREEN = "#8BC34A"
-        private val GRAY = "#9E9E9E"
+    private companion object {
+        const val COLOR_YELLOW = "#FFC107"
+        const val COLOR_GREEN = "#8BC34A"
+        const val COLOR_GRAY = "#9E9E9E"
+    }
+
     inner class GuessViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val songName: TextView = itemView.findViewById(R.id.song_name)
-        val albumImageContainer = itemView.findViewById<FrameLayout>(R.id.album_image_container)
+        val albumImageContainer: FrameLayout = itemView.findViewById(R.id.album_image_container)
         val album: ImageView = itemView.findViewById(R.id.album_image)
         val trackNumber: TextView = itemView.findViewById(R.id.track_number)
         val trackLength: TextView = itemView.findViewById(R.id.track_length)
@@ -30,53 +31,26 @@ class GuessItemAdapter(private val guessItems: MutableList<GuessItem>) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GuessViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_guess, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_guess, parent, false)
         return GuessViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder:GuessViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: GuessViewHolder, position: Int) {
         val guess = guessItems[position]
-        holder.songName.text = guess.song
-        holder.trackNumber.text = guess.track_number.toString()
-        holder.trackLength.text = guess.length
-        holder.features.text = guess.features
+        holder.apply {
+            songName.text = guess.song
+            trackNumber.text = guess.track_number.toString()
+            trackLength.text = guess.length
+            features.text = guess.features
 
-        Glide.with(holder.album.context)
-            .load(guess.album)
-            .into(holder.album)
+            Glide.with(album.context)
+                .load(guess.album)
+                .into(album)
 
-        if(guess.correct_album == 1){
-            holder.albumImageContainer.setBackgroundColor(Color.parseColor(GREEN))
-        }else if(guess.correct_album == 2){
-            holder.albumImageContainer.setBackgroundColor(Color.parseColor(YELLOW))
-        }else{
-            holder.albumImageContainer.setBackgroundColor(Color.parseColor(GRAY))
-        }
-
-        if(guess.correct_length == 1){
-            holder.trackLength.setTextColor(Color.parseColor(GREEN))
-        }else if(guess.correct_length == 2){
-            holder.trackLength.setTextColor(Color.parseColor(YELLOW))
-        }else{
-            holder.trackLength.setTextColor(Color.parseColor(GRAY))
-        }
-
-        if(guess.correct_track_number == 1){
-            holder.trackNumber.setTextColor(Color.parseColor(GREEN))
-        }else if(guess.correct_track_number == 2){
-            holder.trackNumber.setTextColor(Color.parseColor(YELLOW))
-        }else{
-            holder.trackNumber.setTextColor(Color.parseColor(GRAY))
-        }
-
-        if(guess.correct_features == 1){
-            holder.features.setTextColor(Color.parseColor(GREEN))
-        }else if(guess.correct_features == 2){
-            holder.features.setTextColor(Color.parseColor(YELLOW))
-        }else{
-            holder.features.setTextColor(Color.parseColor(GRAY))
-            
+            albumImageContainer.setBackgroundColor(getColor(guess.correct_album))
+            trackLength.setTextColor(getColor(guess.correct_length))
+            trackNumber.setTextColor(getColor(guess.correct_track_number))
+            features.setTextColor(getColor(guess.correct_features))
         }
     }
 
@@ -85,5 +59,13 @@ class GuessItemAdapter(private val guessItems: MutableList<GuessItem>) :
     fun addGuess(guess: GuessItem) {
         guessItems.add(guess)
         notifyItemInserted(guessItems.size - 1)
+    }
+
+    private fun getColor(correctness: Int): Int {
+        return when (correctness) {
+            1 -> Color.parseColor(COLOR_GREEN)
+            2 -> Color.parseColor(COLOR_YELLOW)
+            else -> Color.parseColor(COLOR_GRAY)
+        }
     }
 }

@@ -102,6 +102,8 @@ dependencies {
     implementation("org.greenrobot:eventbus:3.2.0")
 
 
+    // Worker
+    implementation ("androidx.work:work-runtime-ktx:2.8.0")
 
     // Testing dependencies
 

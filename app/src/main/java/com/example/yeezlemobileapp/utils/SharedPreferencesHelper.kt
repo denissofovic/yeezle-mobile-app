@@ -7,48 +7,51 @@ import com.google.gson.reflect.TypeToken
 import com.example.yeezlemobileapp.data.models.GuessItem
 
 class SharedPreferencesHelper(context: Context) {
+
     private val sharedPreferencesGame: SharedPreferences =
-        context.getSharedPreferences("game_prefs", Context.MODE_PRIVATE)
+        context.getSharedPreferences(GAME_PREFS, Context.MODE_PRIVATE)
 
     private val sharedPreferencesLogin: SharedPreferences =
-        context.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+        context.getSharedPreferences(LOGIN_PREFS, Context.MODE_PRIVATE)
+
+    private val gson = Gson()
+
+    companion object {
+        private const val GAME_PREFS = "game_prefs"
+        private const val LOGIN_PREFS = "login_prefs"
+        private const val KEY_EMAIL = "email"
+        private const val KEY_PASSWORD = "password"
+        private const val KEY_GUESS_ITEMS = "guess_items"
+    }
 
     fun saveLoginInfo(email: String, password: String) {
-        sharedPreferencesLogin.edit()
-            .putString("email", email)
-            .putString("password", password)
-            .apply()
+        sharedPreferencesLogin.edit().apply {
+            putString(KEY_EMAIL, email)
+            putString(KEY_PASSWORD, password)
+            apply()
+        }
     }
 
-    fun getEmail(): String? {
-        return sharedPreferencesLogin.getString("email", null)
-    }
+    fun getEmail(): String? = sharedPreferencesLogin.getString(KEY_EMAIL, null)
 
-    fun getPassword(): String? {
-        return sharedPreferencesLogin.getString("password", null)
-    }
+    fun getPassword(): String? = sharedPreferencesLogin.getString(KEY_PASSWORD, null)
 
     fun clearLoginInfo() {
         sharedPreferencesLogin.edit().clear().apply()
     }
 
     fun saveGuessItems(guessItems: List<GuessItem>) {
-        val gson = Gson()
         val json = gson.toJson(guessItems)
-        sharedPreferencesGame.edit().putString("guess_items", json).apply()
+        sharedPreferencesGame.edit().putString(KEY_GUESS_ITEMS, json).apply()
     }
 
     fun getGuessItems(): List<GuessItem> {
-        val gson = Gson()
-        val json = sharedPreferencesGame.getString("guess_items", null)
+        val json = sharedPreferencesGame.getString(KEY_GUESS_ITEMS, null)
         val type = object : TypeToken<List<GuessItem>>() {}.type
         return gson.fromJson(json, type) ?: emptyList()
     }
 
     fun clearGuessItems() {
-        sharedPreferencesGame.edit().clear().apply()
-
+        sharedPreferencesGame.edit().remove(KEY_GUESS_ITEMS).apply()
     }
-
-
 }

@@ -1,6 +1,8 @@
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
+import com.example.yeezlemobileapp.BuildConfig
 import com.example.yeezlemobileapp.data.models.AccessTokenResponse
 import retrofit2.Call
 import retrofit2.Callback
@@ -10,8 +12,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
-import android.util.Log
-import com.example.yeezlemobileapp.BuildConfig
 
 private const val CLIENT_ID = BuildConfig.CLIENT_ID
 private const val CLIENT_SECRET = BuildConfig.CLIENT_SECRET
@@ -29,10 +29,19 @@ interface SpotifyTokenApi {
     ): Call<AccessTokenResponse>
 }
 
+object RetrofitClient {
+    private const val BASE_URL = "https://accounts.spotify.com/"
 
+    val instance: SpotifyTokenApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(SpotifyTokenApi::class.java)
+    }
+}
 
 fun authenticateSpotifyUser(redirectUri: String): Intent {
-
     val authUrl = "https://accounts.spotify.com/authorize" +
             "?client_id=$CLIENT_ID" +
             "&response_type=code" +
@@ -42,16 +51,15 @@ fun authenticateSpotifyUser(redirectUri: String): Intent {
     return Intent(Intent.ACTION_VIEW, Uri.parse(authUrl))
 }
 
-
-fun exchangeCodeForToken(authorizationCode: String,redirectUri: String, context: Context, callback: (String) -> Unit) {
+fun exchangeCodeForToken(
+    authorizationCode: String,
+    redirectUri: String,
+    context: Context,
+    callback: (String) -> Unit
+) {
     Log.d("SpotifyTokenApi", "Starting exchange code for token with authorization code: $authorizationCode")
 
-    val retrofit = Retrofit.Builder()
-        .baseUrl("https://accounts.spotify.com/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-
-    val tokenApi = retrofit.create(SpotifyTokenApi::class.java)
+    val tokenApi = RetrofitClient.instance
     val call = tokenApi.getAccessToken(
         grantType = "authorization_code",
         code = authorizationCode,
@@ -68,18 +76,24 @@ fun exchangeCodeForToken(authorizationCode: String,redirectUri: String, context:
 
             if (response.isSuccessful) {
                 val accessToken = response.body()?.access_token
-                Log.d("SpotifyTokenApi", "Access token retrieved: $accessToken")
-
-
+                if (!accessToken.isNullOrEmpty()) {
+                    Log.d("SpotifyTokenApi", "Access token retrieved successfully: $accessToken")
+                    callback(accessToken)
+                } else {
+                    Log.e("SpotifyTokenApi", "Access token is null or empty.")
+                    callback("Error: Access token is null or empty.")
+                }
             } else {
-                Log.e("SpotifyTokenApi", "Error retrieving access token. Status code: ${response.code()} - ${response.message()}")
-                callback("Error retrieving access token.")
+                val errorMessage = "Error retrieving access token. Status code: ${response.code()} - ${response.message()}"
+                Log.e("SpotifyTokenApi", errorMessage)
+                callback(errorMessage)
             }
         }
 
         override fun onFailure(call: Call<AccessTokenResponse>, t: Throwable) {
-            Log.e("SpotifyTokenApi", "Network request failed: ${t.message}")
-            callback("Network request failed: ${t.message}")
+            val failureMessage = "Network request failed: ${t.message}"
+            Log.e("SpotifyTokenApi", failureMessage)
+            callback(failureMessage)
         }
     })
 }

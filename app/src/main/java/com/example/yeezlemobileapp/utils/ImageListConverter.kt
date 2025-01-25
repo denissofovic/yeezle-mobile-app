@@ -11,11 +11,11 @@ class ImageListConverter {
 
     @TypeConverter
     fun fromImageList(images: List<Image>): String {
-        return objectMapper.writeValueAsString(images)  // Convert List<Image> to JSON string
+        return objectMapper.writeValueAsString(images)
     }
 
     @TypeConverter
     fun toImageList(imagesString: String): List<Image> {
-        return objectMapper.readValue(imagesString)  // Convert JSON string back to List<Image>
+        return objectMapper.readValue(imagesString)
     }
 }

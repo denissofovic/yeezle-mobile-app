@@ -47,10 +47,6 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    /**
-     * Request notification permission (Android 13+).
-     * @param activity Activity instance for requesting permission
-     */
     fun requestNotificationPermission(activity: Activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (!hasNotificationPermission()) {
@@ -63,7 +59,6 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-
     fun handlePermissionResult(requestCode: Int, grantResults: IntArray) {
         if (requestCode == REQUEST_CODE_NOTIFICATION_PERMISSION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -73,7 +68,6 @@ class NotificationHelper(private val context: Context) {
             }
         }
     }
-
 
     fun sendNotification(title: String, message: String) {
 
@@ -85,7 +79,6 @@ class NotificationHelper(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
@@ -93,8 +86,6 @@ class NotificationHelper(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-
-
 
         val notificationManager = NotificationManagerCompat.from(context)
         if (ActivityCompat.checkSelfPermission(

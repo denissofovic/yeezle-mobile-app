@@ -1,5 +1,6 @@
 package com.example.yeezlemobileapp.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,11 +25,18 @@ class LeaderboardAdapter(private val leaderboardList: List<LeaderboardItem>) :
     }
 
     override fun onBindViewHolder(holder: LeaderboardViewHolder, position: Int) {
-        val entry = leaderboardList[position]
+        try {
+            val entry = leaderboardList[position]
 
-        holder.rankTextView.text = "#${position + 1}"
-        holder.playerNameTextView.text = entry.username
-        holder.scoreTextView.text = entry.score.toString()
+            holder.rankTextView.text = "#${position + 1}"
+            holder.playerNameTextView.text = entry.username ?: "Unknown Player"
+            holder.scoreTextView.text = entry.score?.toString() ?: "0"
+        } catch (e: Exception) {
+            Log.e("LeaderboardAdapter", "Error binding data at position $position: ${e.message}", e)
+            holder.rankTextView.text = "#${position + 1}"
+            holder.playerNameTextView.text = "Error"
+            holder.scoreTextView.text = "-"
+        }
     }
 
     override fun getItemCount(): Int = leaderboardList.size

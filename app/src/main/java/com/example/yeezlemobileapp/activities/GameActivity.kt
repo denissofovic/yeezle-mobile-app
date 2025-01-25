@@ -186,14 +186,14 @@ class GameActivity: AppCompatActivity() {
                     ).show()
                 }
 
+            }
+
+
+
+
+
+
         }
-
-
-
-
-
-
-    }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -467,7 +467,6 @@ class GameActivity: AppCompatActivity() {
 
 
 }
-
 
 
 

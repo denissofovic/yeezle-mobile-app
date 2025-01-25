@@ -17,7 +17,6 @@ class CountdownTimer {
 
     fun fetchReferenceTimeFromServer() : Long {
         val referenceTimeMillis = getMidnightUTC()
-
         return  referenceTimeMillis
     }
 }

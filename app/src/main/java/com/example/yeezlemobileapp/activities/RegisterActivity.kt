@@ -2,6 +2,7 @@ package com.example.yeezlemobileapp.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.method.LinkMovementMethod
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.yeezlemobileapp.databinding.ActivityRegisterBinding
@@ -53,6 +54,13 @@ class RegisterActivity : AppCompatActivity() {
                 }
             }
         }
+
+        binding.loginButton.movementMethod = LinkMovementMethod.getInstance()
+        binding.loginButton.setOnClickListener {
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 
     private fun redirectToVerificationActivity(email: String) {

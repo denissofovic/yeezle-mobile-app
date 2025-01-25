@@ -8,8 +8,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yeezlemobileapp.R
 import com.example.yeezlemobileapp.adapters.LeaderboardAdapter
-import com.example.yeezlemobileapp.data.models.LeaderboardItem
-import com.example.yeezlemobileapp.data.models.StatItem
 import com.example.yeezlemobileapp.databinding.ActivityLeaderboardBinding
 import com.example.yeezlemobileapp.supabase.SupabasePlayerHelper
 import kotlinx.coroutines.Dispatchers
@@ -18,78 +16,57 @@ import kotlinx.coroutines.withContext
 
 class LeaderboardActivity : AppCompatActivity() {
 
-    private lateinit var binding : ActivityLeaderboardBinding
+    private lateinit var binding: ActivityLeaderboardBinding
     private val supabasePlayerHelper = SupabasePlayerHelper()
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLeaderboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        getLeaderboard()
-        handleNavigation()
-
-
-
-
-
-
-
+        setupLeaderboard()
+        setupNavigation()
     }
 
-    private fun getLeaderboard(){
+    private fun setupLeaderboard() {
+        binding.leaderboardRecyclerView.layoutManager = LinearLayoutManager(this)
+        fetchLeaderboardData()
+    }
 
-        val leaderboardRecycleView = binding.leaderboardRecyclerView
-        leaderboardRecycleView.layoutManager = LinearLayoutManager(this)
+    private fun fetchLeaderboardData() {
         lifecycleScope.launch {
             try {
-                val topPlayerList = supabasePlayerHelper.getTopPlayers()
-
-
-                val leaderboardAdapter = LeaderboardAdapter(topPlayerList)
-                leaderboardRecycleView.adapter = leaderboardAdapter
-
-            }catch (e: Exception) {
-                Toast.makeText(
-                    this@LeaderboardActivity,
-                    "Failed to load leaderboard: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val topPlayerList = withContext(Dispatchers.IO) {
+                    supabasePlayerHelper.getTopPlayers()
+                }
+                binding.leaderboardRecyclerView.adapter = LeaderboardAdapter(topPlayerList)
+            } catch (e: Exception) {
+                showToast("Failed to load leaderboard: ${e.message}")
             }
         }
-
     }
 
-    private fun handleNavigation(){
-        val bottomNavigationView = binding.bottomNavigationView
-
-        bottomNavigationView.selectedItemId = R.id.navigation_leaderboard
-
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_dashboard -> {
-                    startActivity(Intent(this, DashboardActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    true
-
+    private fun setupNavigation() {
+        binding.bottomNavigationView.apply {
+            selectedItemId = R.id.navigation_leaderboard
+            setOnItemSelectedListener { item ->
+                when (item.itemId) {
+                    R.id.navigation_dashboard -> navigateTo(DashboardActivity::class.java)
+                    R.id.navigation_profile -> navigateTo(ProfileActivity::class.java)
+                    R.id.navigation_about -> navigateTo(AboutActivity::class.java)
+                    R.id.navigation_leaderboard -> true
+                    else -> false
                 }
-                R.id.navigation_leaderboard -> {
-                    true
-
-                }
-                R.id.navigation_profile -> {
-                    startActivity(Intent(this, ProfileActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    true
-                }
-                R.id.navigation_about -> {
-                    startActivity(Intent(this, AboutActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    true
-                }
-                else -> false
             }
         }
+    }
+
+    private fun navigateTo(activityClass: Class<*>) = true.also {
+        startActivity(Intent(this, activityClass))
+        overridePendingTransition(0, 0)
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

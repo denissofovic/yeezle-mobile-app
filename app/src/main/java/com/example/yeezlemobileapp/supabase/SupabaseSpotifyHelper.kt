@@ -1,34 +1,26 @@
 package com.example.yeezlemobileapp.supabase
 
 import android.util.Log
-import com.example.yeezlemobileapp.BuildConfig
 import com.example.yeezlemobileapp.data.models.Album
 import com.example.yeezlemobileapp.data.models.GuessingTrack
 import com.example.yeezlemobileapp.data.models.Track
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.createSupabaseClient
-import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
-import io.github.jan.supabase.serializer.JacksonSerializer
-
 
 class SupabaseSpotifyHelper {
-    val supabase = Supabase().initialize()
 
+    private val supabase = Supabase.getSupabaseClient()
 
     suspend fun insertAlbums(albums: List<Album>) {
         try {
             supabase.from("album").insert(albums)
-            Log.d("SupabaseHelper", "Inserted albums successfully")
+            Log.d("SupabaseSpotifyHelper", "Inserted albums successfully")
         } catch (e: Exception) {
-            Log.e("SupabaseHelper", "Failed to insert albums: ${e.message}")
+            Log.e("SupabaseSpotifyHelper", "Failed to insert albums: ${e.message}")
         }
     }
 
     suspend fun insertTracks(tracks: List<Track>, albumId: String) {
         try {
-
             val trackRecords = tracks.map { track ->
                 mapOf(
                     "spotify_id" to track.id,
@@ -41,70 +33,46 @@ class SupabaseSpotifyHelper {
                 )
             }
 
-            Log.d("SupabaseHelper", trackRecords.toString())
-
+            Log.d("SupabaseSpotifyHelper", trackRecords.toString())
             supabase.from("track").insert(trackRecords)
-
         } catch (e: Exception) {
-            Log.e("SupabaseHelper", "Error inserting tracks: ${e.message}")
+            Log.e("SupabaseSpotifyHelper", "Error inserting tracks: ${e.message}")
         }
     }
 
-    suspend fun getTracks(): List<Track>?{
-        var tracks : List<Track>? = null
-        try{
-            tracks = supabase.from("track").select().decodeList<Track>()
-            Log.d("SupabaseHelper", tracks.toString())
-
-        }catch (e : Exception){
-            Log.e("SupabaseHelper", "Error getting tracks: ${e.message}")
-
+    suspend fun getTracks(): List<Track>? {
+        return try {
+            val tracks = supabase.from("track").select().decodeList<Track>()
+            Log.d("SupabaseSpotifyHelper", tracks.toString())
+            tracks
+        } catch (e: Exception) {
+            Log.e("SupabaseSpotifyHelper", "Error getting tracks: ${e.message}")
+            null
         }
-        return tracks
-
-
-
     }
 
-    suspend fun getAlbums(): List<Album>?{
-        var albums : List<Album>? = null
-        try{
-            albums = supabase.from("album").select().decodeList<Album>()
-
-        }catch (e : Exception){
-            Log.e("SupabaseHelper", "Error getting albums: ${e.message}")
-
+    suspend fun getAlbums(): List<Album>? {
+        return try {
+            val albums = supabase.from("album").select().decodeList<Album>()
+            Log.d("SupabaseSpotifyHelper", albums.toString())
+            albums
+        } catch (e: Exception) {
+            Log.e("SupabaseSpotifyHelper", "Error getting albums: ${e.message}")
+            null
         }
-        return albums
-
-
     }
 
-
-    suspend fun getGuessingTrack(): Track?{
-        var track: Track? = null
-
-        try{
-            val res = supabase.from("guessing_track").select()
-                .decodeSingle<GuessingTrack>();
-
+    suspend fun getGuessingTrack(): Track? {
+        return try {
+            val res = supabase.from("guessing_track").select().decodeSingle<GuessingTrack>()
             val trackId = res.track
-            track = supabase.from("track").select{
-                filter {
-                    eq("id",trackId)
-                }
+
+            supabase.from("track").select {
+                filter { eq("id", trackId) }
             }.decodeSingle<Track>()
-
-        }catch (e : Exception){
-            Log.e("SupabaseHelper", "Error getting guessing track: ${e.message}")
-
+        } catch (e: Exception) {
+            Log.e("SupabaseSpotifyHelper", "Error getting guessing track: ${e.message}")
+            null
         }
-        return track
-
-
     }
 }
-
-
-
-

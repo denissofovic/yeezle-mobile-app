@@ -34,63 +34,45 @@ class DashboardActivity : AppCompatActivity() {
     private val handler = Handler()
     private val notificationHelper = NotificationHelper(this)
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        askForPermissions()
-        handleNavigation()
-        fetchStatsAndUpdateUI()
-
-        /*
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
-            }
-        }
-
-        */
-
+        initializePermissions()
+        setupNavigation()
+        updateStatsAndUI()
     }
 
     override fun onResume() {
         super.onResume()
-        handleNavigation()
-        fetchStatsAndUpdateUI()
+        setupNavigation()
+        updateStatsAndUI()
     }
 
-    private fun startStepCounterService() {
-        Log.d("DashboardActivity", "Attempting to start StepCounterService")
-        val serviceIntent = Intent(this, StepCounterService::class.java)
-        ContextCompat.startForegroundService(this, serviceIntent)
-    }
-
-
-    private fun askForPermissions(){
+    private fun initializePermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACTIVITY_RECOGNITION), 100)
-            } else {
-                startStepCounterService()
-            }
+            requestPermission(
+                Manifest.permission.ACTIVITY_RECOGNITION,
+                onGranted = { startStepCounterService() },
+                onDenied = {
+                    Toast.makeText(this, "Permission required for step counter", Toast.LENGTH_SHORT).show()
+                }
+            )
         } else {
             startStepCounterService()
         }
-
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    private fun requestPermission(permission: String, onGranted: () -> Unit, onDenied: () -> Unit) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(permission), 100)
+        } else {
+            onGranted()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startStepCounterService()
@@ -99,37 +81,18 @@ class DashboardActivity : AppCompatActivity() {
         }
     }
 
+    private fun startStepCounterService() {
+        Log.d("DashboardActivity", "Attempting to start StepCounterService")
+        val serviceIntent = Intent(this, StepCounterService::class.java)
+        ContextCompat.startForegroundService(this, serviceIntent)
+    }
 
-
-
-
-    @SuppressLint("SetTextI18n")
-    private fun fetchStatsAndUpdateUI() {
+    private fun updateStatsAndUI() {
         lifecycleScope.launch {
             try {
                 val username = supabasePlayerHelper.getUsername()
-                val statsList = withContext(Dispatchers.IO) {
-                    val score = supabasePlayerHelper.getScore()
-                    val gamesPlayed = supabasePlayerHelper.getGamesPlayed()
-                    val bestStreak = supabasePlayerHelper.getBestStreak()
-                    val currentStreak = supabasePlayerHelper.getCurrentStreak()
-                    val gamesWon = supabasePlayerHelper.getGamesWon()
-                    val gamesLost = maxOf(0, gamesPlayed - gamesWon)
-
-                    listOf(
-                        StatItem(R.drawable.ic_dashboard, "Total Score", score),
-                        StatItem(R.drawable.ic_dashboard, "Games Played", gamesPlayed),
-                        StatItem(R.drawable.ic_dashboard, "Games Won", gamesWon),
-                        StatItem(R.drawable.ic_dashboard, "Games Lost", gamesLost),
-                        StatItem(R.drawable.ic_dashboard, "Current Streak", currentStreak),
-                        StatItem(R.drawable.ic_dashboard, "Best Streak", bestStreak)
-                    )
-                }
-
-                binding.nicknameText.text = "Welcome, ${username}"
-                binding.statsRecyclerView.layoutManager = LinearLayoutManager(this@DashboardActivity)
-                binding.statsRecyclerView.adapter = StatsAdapter(statsList)
-
+                val stats = fetchStats()
+                updateUI(username, stats)
             } catch (e: Exception) {
                 Toast.makeText(
                     this@DashboardActivity,
@@ -138,38 +101,64 @@ class DashboardActivity : AppCompatActivity() {
                 ).show()
             }
         }
-
         startCountdownTimer()
+    }
+
+    private suspend fun fetchStats(): List<StatItem> = withContext(Dispatchers.IO) {
+        val score = supabasePlayerHelper.getScore()
+        val gamesPlayed = supabasePlayerHelper.getGamesPlayed()
+        val bestStreak = supabasePlayerHelper.getBestStreak()
+        val currentStreak = supabasePlayerHelper.getCurrentStreak()
+        val gamesWon = supabasePlayerHelper.getGamesWon()
+        val gamesLost = maxOf(0, gamesPlayed - gamesWon)
+
+        listOf(
+            StatItem(R.drawable.ic_dashboard, "Total Score", score),
+            StatItem(R.drawable.ic_dashboard, "Games Played", gamesPlayed),
+            StatItem(R.drawable.ic_dashboard, "Games Won", gamesWon),
+            StatItem(R.drawable.ic_dashboard, "Games Lost", gamesLost),
+            StatItem(R.drawable.ic_dashboard, "Current Streak", currentStreak),
+            StatItem(R.drawable.ic_dashboard, "Best Streak", bestStreak)
+        )
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateUI(username: String, stats: List<StatItem>) {
+        binding.nicknameText.text = "Welcome, $username"
+        binding.statsRecyclerView.layoutManager = LinearLayoutManager(this@DashboardActivity)
+        binding.statsRecyclerView.adapter = StatsAdapter(stats)
     }
 
     private fun startCountdownTimer() {
         handler.post(object : Runnable {
             override fun run() {
                 val referenceTimeMillis = CountdownTimer().fetchReferenceTimeFromServer()
-                val currentTimeMillis = System.currentTimeMillis()
-                val timeElapsed = (currentTimeMillis - referenceTimeMillis) % (24 * 60 * 60 * 1000L)
-                val remainingTimeMillis = (24 * 60 * 60 * 1000L) - timeElapsed
+                val remainingTimeMillis = calculateRemainingTime(referenceTimeMillis)
 
-                if(remainingTimeMillis <= 1000){
-                    SharedPreferencesHelper(this@DashboardActivity).clearGuessItems()
-                    notificationHelper.sendNotification("Game time", "New song just got generated")
-                    StepCounterService().resetStepCount()
-                    StepCounterService().ONCE_FLAG = false
-                }
 
-                val hours = TimeUnit.MILLISECONDS.toHours(remainingTimeMillis)
-                val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingTimeMillis) % 60
-                val seconds = TimeUnit.MILLISECONDS.toSeconds(remainingTimeMillis) % 60
-
-                binding.nextSongTimerText.text = String.format(
-                    "Next song in %02d:%02d:%02d",
-                    hours,
-                    minutes,
-                    seconds
-                )
+                updateCountdownUI(remainingTimeMillis)
                 handler.postDelayed(this, 1000)
             }
         })
+    }
+
+    private fun calculateRemainingTime(referenceTimeMillis: Long): Long {
+        val currentTimeMillis = System.currentTimeMillis()
+        val timeElapsed = (currentTimeMillis - referenceTimeMillis) % TimeUnit.DAYS.toMillis(1)
+        return TimeUnit.DAYS.toMillis(1) - timeElapsed
+    }
+
+
+
+    private fun updateCountdownUI(remainingTimeMillis: Long) {
+        val hours = TimeUnit.MILLISECONDS.toHours(remainingTimeMillis)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingTimeMillis) % 60
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(remainingTimeMillis) % 60
+
+        binding.nextSongTimerText.text = String.format(
+            "Next song in %02d:%02d:%02d",
+            hours, minutes, seconds
+        )
     }
 
     override fun onDestroy() {
@@ -177,40 +166,27 @@ class DashboardActivity : AppCompatActivity() {
         handler.removeCallbacksAndMessages(null)
     }
 
-    private fun handleNavigation(){
-
+    private fun setupNavigation() {
         binding.fabPlay.setOnClickListener {
             startActivity(Intent(this@DashboardActivity, GameActivity::class.java))
         }
 
-        val bottomNavigationView = binding.bottomNavigationView
-
-        bottomNavigationView.selectedItemId = R.id.navigation_dashboard
-
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_dashboard -> {
-                    true
+        binding.bottomNavigationView.apply {
+            selectedItemId = R.id.navigation_dashboard
+            setOnItemSelectedListener { item ->
+                when (item.itemId) {
+                    R.id.navigation_dashboard -> true
+                    R.id.navigation_leaderboard -> navigateTo(LeaderboardActivity::class.java)
+                    R.id.navigation_profile -> navigateTo(ProfileActivity::class.java)
+                    R.id.navigation_about -> navigateTo(AboutActivity::class.java)
+                    else -> false
                 }
-                R.id.navigation_leaderboard -> {
-                    startActivity(Intent(this, LeaderboardActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    true
-                }
-                R.id.navigation_profile -> {
-                    startActivity(Intent(this, ProfileActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    true
-                }
-                R.id.navigation_about -> {
-                    startActivity(Intent(this, AboutActivity::class.java))
-                    overridePendingTransition(0, 0)
-                    true
-                }
-                else -> false
             }
         }
     }
 
-
+    private fun navigateTo(activityClass: Class<*>) = true.also {
+        startActivity(Intent(this, activityClass))
+        overridePendingTransition(0, 0)
+    }
 }

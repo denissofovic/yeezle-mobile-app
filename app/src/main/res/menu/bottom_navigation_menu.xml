@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
         <item
             android:id="@+id/navigation_profile"
             android:icon="@drawable/ic_profile"
-            android:title="Profile" />
+            android:title="Profile"
+            app:showAsAction="ifRoom" />
+
         <item
             android:id="@+id/navigation_leaderboard"
             android:icon="@drawable/ic_leaderboard"
-            android:title="Leaderboard" />
+            android:title="Leaderboard"
+            app:showAsAction="ifRoom" />
+
         <item
             android:id="@+id/navigation_dashboard"
             android:icon="@drawable/ic_dashboard"
-            android:title="Dashboard" />
+            android:title="Dashboard"
+            app:showAsAction="ifRoom" />
+
         <item
             android:id="@+id/navigation_about"
             android:icon="@drawable/ic_about"
-            android:title="About" />
-
-
+            android:title="About"
+            app:showAsAction="ifRoom" />
 
 </menu>
