@@ -5,6 +5,9 @@ import com.example.yeezlemobileapp.BuildConfig
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 class SupabaseAuthHelper {
 
@@ -12,12 +15,17 @@ class SupabaseAuthHelper {
     private val REDIRECT_AUTH_URL = BuildConfig.REDIRECT_URI_AUTH
     private val REDIRECT_RESET_URL = BuildConfig.REDIRECT_URI_RESET
 
-    suspend fun signUpUser(email: String, password: String): Boolean {
+    suspend fun signUpUser(email: String, password: String, username: String): Boolean {
         return try {
+            val metadata = buildJsonObject {
+                put("username", username)
+            }
             supabase.auth.signUpWith(Email, REDIRECT_AUTH_URL) {
                 this.email = email
                 this.password = password
+                this.data = metadata
             }
+
             logInUser(email, password)
             true
         } catch (e: Exception) {

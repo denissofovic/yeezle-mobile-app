@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.yeezlemobileapp.databinding.ActivityRegisterBinding
 import com.example.yeezlemobileapp.supabase.SupabaseAuthHelper
+import com.example.yeezlemobileapp.utils.SharedPreferencesHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,10 +43,11 @@ class RegisterActivity : AppCompatActivity() {
                 }
                 else -> {
                     CoroutineScope(Dispatchers.IO).launch {
-                        val success = supabaseAuthHelper.signUpUser(email, password)
+                        val success = supabaseAuthHelper.signUpUser(email, password, username)
                         withContext(Dispatchers.Main) {
                             if (success) {
-                                redirectToVerificationActivity(email)
+                                SharedPreferencesHelper(this@RegisterActivity).saveLoginInfo(email,password)
+                                redirectToMainActivity(email)
                             } else {
                                 Toast.makeText(this@RegisterActivity, "Sign up failed. Try again.", Toast.LENGTH_SHORT).show()
                             }
@@ -60,6 +62,13 @@ class RegisterActivity : AppCompatActivity() {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
+
+    }
+
+    private fun redirectToMainActivity(email: String) {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
 
     }
 

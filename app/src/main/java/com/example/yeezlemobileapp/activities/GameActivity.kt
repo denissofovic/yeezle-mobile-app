@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewStub
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -48,6 +49,7 @@ import com.example.yeezlemobileapp.activities.GameActivity.GameState.GAME_WON
 import com.example.yeezlemobileapp.activities.GameActivity.GameState.LENGTH_ORDER
 import com.example.yeezlemobileapp.activities.GameActivity.GameState.NUMBER_OF_GUESSES
 import com.example.yeezlemobileapp.activities.GameActivity.GameState.TRACK_NUMBER_ORDER
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
 class GameActivity: AppCompatActivity() {
@@ -62,7 +64,7 @@ class GameActivity: AppCompatActivity() {
 
     private var guessItems = mutableListOf<GuessItem>()
     private lateinit var guessItemAdapter: GuessItemAdapter
-
+    private lateinit var disabledStateContainer: View
     object GameState {
         var SPECIAL_GUESS = false
         var GAME_WON = false
@@ -169,9 +171,7 @@ class GameActivity: AppCompatActivity() {
                         CoroutineScope(Dispatchers.IO).launch {
                             updateStats(gameWon, guessItems.size)
                         }
-                        binding.songInput.hint = "Come back tomorrow :)"
-                        binding.songInput.isEnabled = false
-                        binding.guessButton.isEnabled = false
+                        setAlreadyPlayedScreen()
                         showGameEndScreen()
                         GAME_OVER = true
                         GameState.SPECIAL_GUESS = false
@@ -194,6 +194,17 @@ class GameActivity: AppCompatActivity() {
 
 
         }
+    }
+
+    private fun setAlreadyPlayedScreen() {
+
+            binding.disabledStateContainer.isVisible = true
+            binding.songInputLayout.isVisible = false
+            binding.guessButton.isVisible = false
+            binding.columnHeaders.isVisible = false
+            binding.guessRecView.isVisible = false
+            binding.specialClueButton.isVisible = false
+
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -228,10 +239,8 @@ class GameActivity: AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if(ALREADY_PLAYED){
-            binding.songInput.hint = "Come back tomorrow :)"
-            binding.songInput.isEnabled = false
-            binding.guessButton.isEnabled = false
+        if (ALREADY_PLAYED) {
+            setAlreadyPlayedScreen()
         }
         binding.specialClueButton.visibility = if (GameState.SPECIAL_GUESS) View.VISIBLE else View.GONE
 
@@ -281,7 +290,7 @@ class GameActivity: AppCompatActivity() {
     }
 
     private suspend fun updateStats(gameWon : Boolean, guesses : Int){
-        if(gameWon == true){
+        if(gameWon){
             val newScore = supabasePlayerHelper.getScore() + 1000 - (100 * guesses)
             supabasePlayerHelper.incrementStreak()
             supabasePlayerHelper.incrementGamesWon()
@@ -319,12 +328,8 @@ class GameActivity: AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 ALREADY_PLAYED = supabasePlayerHelper.getAlreadyPlayed()
-                if(ALREADY_PLAYED == true){
-                    binding.songInput.hint = "Come back tomorrow :)"
-                    binding.songInput.isEnabled = false
-                    binding.guessButton.isEnabled = false
-                    binding.guessButton.isVisible = false
-
+                if (ALREADY_PLAYED) {
+                    setAlreadyPlayedScreen()
                 }
 
                 tracks = supabaseSpotifyHelper.getTracks()
@@ -427,7 +432,9 @@ class GameActivity: AppCompatActivity() {
     private fun handleNavigation(){
         val bottomNavigationView = binding.bottomNavigationView
 
-        bottomNavigationView.selectedItemId = -1
+        bottomNavigationView.menu.setGroupCheckable(0, false, true)
+        bottomNavigationView.clearFocus()
+
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_dashboard -> {
