@@ -105,6 +105,13 @@ dependencies {
     // Worker
     implementation ("androidx.work:work-runtime-ktx:2.8.0")
 
+    // Exo player
+    implementation("com.google.android.exoplayer:exoplayer:2.19.1")
+
+    // Konfetti animation
+    implementation ("nl.dionsegijn:konfetti-xml:2.0.4")
+
+
     // Testing dependencies
 
     testImplementation("junit:junit:4.13.2")

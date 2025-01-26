@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.yeezlemobileapp.utils.SharedPreferencesHelper
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager

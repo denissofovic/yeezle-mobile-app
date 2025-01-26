@@ -6,49 +6,39 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.yeezlemobileapp.R
-import com.example.yeezlemobileapp.databinding.ActivityMainBinding
+import com.example.yeezlemobileapp.databinding.ActivityProfileBinding
 import com.example.yeezlemobileapp.supabase.SupabaseAuthHelper
+import com.example.yeezlemobileapp.supabase.SupabasePlayerHelper
 import com.example.yeezlemobileapp.utils.SharedPreferencesHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class ProfileActivity : AppCompatActivity() {
 
 
-    private lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityProfileBinding
     private val supabaseAuthHelper = SupabaseAuthHelper()
+    private val supabasePlayerHelper = SupabasePlayerHelper()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        val sharedPreferences = getSharedPreferences("AuthPrefs", MODE_PRIVATE)
-
         handleNavigation()
 
-        /*
-        val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
-        if (isLoggedIn) {
-            startActivity(Intent(this, DashboardActivity::class.java))
-            finish()
-        } else {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val username = supabasePlayerHelper.getUsername()
+            withContext(Dispatchers.Main){
+                binding.nicknameText.setText(username)
+
+            }
         }
 
-
-        val resetPasswordSuccess = intent.getBooleanExtra("reset_password_success", false)
-        if(resetPasswordSuccess){
-            Toast.makeText(this, "Password successfully changed", Toast.LENGTH_SHORT).show()
-        }
-
-        val signupSuccess = intent.getBooleanExtra("signup_success", false)
-        if(resetPasswordSuccess){
-            Toast.makeText(this, "All done, welcome", Toast.LENGTH_SHORT).show()
-        }*/
 
         binding.logoutButton.setOnClickListener{
             CoroutineScope(Dispatchers.IO).launch {
@@ -64,6 +54,35 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
+        binding.editNicknameButton.setOnClickListener {
+            val newNickname = binding.nicknameText.text.toString().trim()
+
+            when {
+                newNickname.isEmpty() -> {
+                    Toast.makeText(this, "Nickname cannot be empty", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                newNickname.length > 20 -> {
+                    Toast.makeText(this, "Nickname too long (max 20 characters)", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+            }
+
+
+            CoroutineScope(Dispatchers.Main).launch {
+                editUserNickname(newNickname)
+                Toast.makeText(this@ProfileActivity, "Username changed successfully", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
+    }
+
+    private suspend fun editUserNickname(newUsername : String) : Boolean {
+        val success = supabasePlayerHelper.changeUsername(newUsername)
+        binding.nicknameText.setText(newUsername)
+
+        return success
     }
 
 

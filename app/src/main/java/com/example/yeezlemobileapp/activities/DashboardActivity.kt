@@ -85,16 +85,9 @@ class DashboardActivity : AppCompatActivity() {
     private fun updateStatsAndUI() {
         lifecycleScope.launch {
             try {
-                val username = supabasePlayerHelper.getUsername()
                 val stats = fetchStats()
-                updateUI(username, stats)
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this@DashboardActivity,
-                    "Failed to load stats: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+                updateUI(stats)
+            } catch (_: Exception) { }
         }
         startCountdownTimer()
     }
@@ -118,7 +111,7 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun updateUI(username: String, stats: List<Pair<Int, Int>>) {
+    private fun updateUI( stats: List<Pair<Int, Int>>) {
 
         stats.forEach { (viewId, value) ->
             findViewById<TextView>(viewId).text = value.toString()

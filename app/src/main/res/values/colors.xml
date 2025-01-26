@@ -13,6 +13,7 @@
     <color name="primary">#1E1E1E</color>
     <color name="secondary">#2D2D2D</color>
     <color name="accent">#6200EE</color>
+    <color name="old_gold">#CFB53B</color>
     <color name="background">#FAFAFA</color>
     <color name="surface">#FFFFFF</color>
     <color name="error">#B00020</color>

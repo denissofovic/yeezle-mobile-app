@@ -144,12 +144,13 @@
             android:layout_height="wrap_content"
             android:contentDescription="Special clue"
             android:src="@drawable/ic_music_note"
-            app:tint="@color/surface"
+            app:tint="@color/old_gold"
             app:backgroundTint="@color/primary"
             app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginBottom="16dp" />
+
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"
@@ -204,7 +205,11 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-
+        <nl.dionsegijn.konfetti.xml.KonfettiView
+            android:id="@+id/konfettiView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:elevation="10dp"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

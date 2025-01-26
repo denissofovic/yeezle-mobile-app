@@ -3,10 +3,13 @@ package com.example.yeezlemobileapp.activities
 
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.view.ViewStub
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -49,8 +52,12 @@ import com.example.yeezlemobileapp.activities.GameActivity.GameState.GAME_WON
 import com.example.yeezlemobileapp.activities.GameActivity.GameState.LENGTH_ORDER
 import com.example.yeezlemobileapp.activities.GameActivity.GameState.NUMBER_OF_GUESSES
 import com.example.yeezlemobileapp.activities.GameActivity.GameState.TRACK_NUMBER_ORDER
-import com.google.android.material.bottomnavigation.BottomNavigationView
-
+import com.google.android.exoplayer2.ExoPlayer
+import kotlinx.coroutines.delay
+import com.google.android.exoplayer2.MediaItem
+import nl.dionsegijn.konfetti.core.Party
+import nl.dionsegijn.konfetti.core.Position
+import nl.dionsegijn.konfetti.core.emitter.Emitter
 
 class GameActivity: AppCompatActivity() {
     private lateinit var binding: ActivityGameBinding
@@ -65,6 +72,9 @@ class GameActivity: AppCompatActivity() {
     private var guessItems = mutableListOf<GuessItem>()
     private lateinit var guessItemAdapter: GuessItemAdapter
     private lateinit var disabledStateContainer: View
+    private var player: ExoPlayer? = null
+
+
     object GameState {
         var SPECIAL_GUESS = false
         var GAME_WON = false
@@ -189,9 +199,10 @@ class GameActivity: AppCompatActivity() {
             }
 
 
+        }
 
-
-
+        binding.specialClueButton.setOnClickListener{
+            playPreview("https://p.scdn.co/mp3-preview/2726a9595503bf33fdf44d0e85ae8abc7d876d44?cid=774b29d4f13844c495f206cafdad9c86")
 
         }
     }
@@ -254,6 +265,8 @@ class GameActivity: AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         EventBus.getDefault().unregister(this)
+        player?.release()
+        player = null
     }
 
     private fun showGameEndScreen() {
@@ -467,9 +480,44 @@ class GameActivity: AppCompatActivity() {
     fun onStepGoalAchieved(event: StepGoalAchievedEvent) {
         if (!GameState.SPECIAL_GUESS) {
             GameState.SPECIAL_GUESS = true
-            binding.specialClueButton.visibility = View.VISIBLE
-        }
 
+            binding.specialClueButton.visibility = View.VISIBLE
+            val animation = AnimationUtils.loadAnimation(this, R.anim.fade_scale_in)
+            binding.specialClueButton.startAnimation(animation)
+
+            val pulseAnimation = AnimationUtils.loadAnimation(this, R.anim.pulse)
+            binding.specialClueButton.startAnimation(pulseAnimation)
+
+            binding.konfettiView.start(
+                Party(
+                    speed = 2f,
+                    maxSpeed = 30f,
+                    damping = 0.9f,
+                    spread = 360,
+                    colors = listOf(Color.YELLOW, Color.GREEN, Color.MAGENTA),
+                    position = Position.Relative(0.5, 0.3),
+                    timeToLive = 2000L,
+                    fadeOutEnabled = true,
+                    emitter = Emitter(duration = 2000).max(300)
+                        .perSecond(150)
+                )
+            )
+        }
+    }
+
+    private fun playPreview(previewUrl: String) {
+        player?.release()
+        player = ExoPlayer.Builder(this).build()
+
+        val mediaItem = MediaItem.fromUri(previewUrl)
+        player?.setMediaItem(mediaItem)
+        player?.prepare()
+        player?.play()
+        Handler(Looper.getMainLooper()).postDelayed({
+            player?.stop()
+            player?.release()
+            player = null
+        }, 3000)
     }
 
 

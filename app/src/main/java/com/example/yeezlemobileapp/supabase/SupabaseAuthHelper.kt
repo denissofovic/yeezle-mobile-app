@@ -56,13 +56,12 @@ class SupabaseAuthHelper {
 
     suspend fun logOutUser(): Boolean {
         return try {
-            if (supabase.auth.currentUserOrNull() == null) {
-                return false
-            }
+            Log.d("SupabaseAuthHelper", "Attempting logout")
             supabase.auth.signOut()
+            Log.d("SupabaseAuthHelper", "Logout successful")
             true
         } catch (e: Exception) {
-            Log.e("SupabaseAuthHelper", "Error during logout: ${e.message}")
+            Log.e("SupabaseAuthHelper", "Logout failed: ${e.message}")
             false
         }
     }

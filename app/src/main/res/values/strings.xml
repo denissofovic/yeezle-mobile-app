@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Yeezle Mobile App</string>
+    <string name="app_name">Yeezle</string>
     <string name="loginString">Log In</string>
     <string name="passwordHint">Password</string>
     <string name="emailHint">Email</string>
