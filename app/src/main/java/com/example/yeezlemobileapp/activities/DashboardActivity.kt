@@ -34,6 +34,18 @@ class DashboardActivity : AppCompatActivity() {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val loginSuccess = intent.getBooleanExtra("login_success", false)
+        val username = intent.getStringExtra("username")
+        val signupSuccess = intent.getBooleanExtra("signup_success", false)
+
+        if (loginSuccess) {
+            Toast.makeText(this, "Successfully signed in, welcome $username!", Toast.LENGTH_SHORT).show()
+        }
+
+        if (signupSuccess) {
+            Toast.makeText(this, "Successfully registered, welcome $username!", Toast.LENGTH_SHORT).show()
+        }
+
         initializePermissions()
         setupNavigation()
         updateStatsAndUI()

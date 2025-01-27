@@ -184,6 +184,7 @@ class GameActivity: AppCompatActivity() {
                         setAlreadyPlayedScreen()
                         showGameEndScreen()
                         GAME_OVER = true
+                        ALREADY_PLAYED = true
                         GameState.SPECIAL_GUESS = false
                         binding.specialClueButton.visibility = View.GONE
 
@@ -478,7 +479,8 @@ class GameActivity: AppCompatActivity() {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onStepGoalAchieved(event: StepGoalAchievedEvent) {
-        if (!GameState.SPECIAL_GUESS) {
+
+        if (!GameState.SPECIAL_GUESS && !ALREADY_PLAYED) {
             GameState.SPECIAL_GUESS = true
 
             binding.specialClueButton.visibility = View.VISIBLE

@@ -47,7 +47,7 @@ class RegisterActivity : AppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             if (success) {
                                 SharedPreferencesHelper(this@RegisterActivity).saveLoginInfo(email,password)
-                                redirectToMainActivity(email)
+                                redirectToMainActivity()
                             } else {
                                 Toast.makeText(this@RegisterActivity, "Sign up failed. Try again.", Toast.LENGTH_SHORT).show()
                             }
@@ -65,24 +65,19 @@ class RegisterActivity : AppCompatActivity() {
 
     }
 
-    private fun redirectToMainActivity(email: String) {
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
-        finish()
-
+    private fun redirectToMainActivity() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val username = binding.username.text.toString()
+            withContext(Dispatchers.Main) {
+                val intent = Intent(this@RegisterActivity, MainActivity::class.java)
+                intent.putExtra("signup_success", true)
+                intent.putExtra("username", username)
+                startActivity(intent)
+                finish()
+            }
+        }
     }
 
-    private fun redirectToVerificationActivity(email: String) {
-        val intent = Intent(this, VerificationActivity::class.java)
-        intent.putExtra("resend_email", email)
-        startActivity(intent)
-        finish()
-    }
-
-    private fun validPasswordCheck(password: String): Boolean {
-        val passwordRegex = Regex("^.{8,}\$\n")
-        return passwordRegex.matches(password)
-    }
 
     private fun validUsernameCheck(username: String): Boolean {
         val usernameRegex = Regex("^[a-zA-Z0-9_]{4,20}$")

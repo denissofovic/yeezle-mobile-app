@@ -26,14 +26,16 @@ class ForgotPasswordActivity: AppCompatActivity() {
                 Toast.makeText(this@ForgotPasswordActivity, "Please enter a valid email", Toast.LENGTH_SHORT).show()
 
             }else{
-                val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-                sharedPref.edit().putString("email_for_reset", email).apply()
+
                 CoroutineScope(Dispatchers.IO).launch {
                     val response = supabaseAuthHelper.sendPasswordResetLink(email)
-                    if(response){
-                        Toast.makeText(this@ForgotPasswordActivity, "Reset link sent, please chech your inbox", Toast.LENGTH_SHORT).show()
-                    }else{
-                        Toast.makeText(this@ForgotPasswordActivity, "Couldn't sent reset email", Toast.LENGTH_SHORT).show()
+                    if(response) {
+                        val intent = Intent(this@ForgotPasswordActivity, LoginActivity::class.java)
+                        intent.putExtra("reset_link_sent", true)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(this@ForgotPasswordActivity, "Couldn't send reset email", Toast.LENGTH_SHORT).show()
                     }
                 }
 

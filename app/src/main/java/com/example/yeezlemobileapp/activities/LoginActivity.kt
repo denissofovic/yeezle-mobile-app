@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.yeezlemobileapp.BuildConfig
 import com.example.yeezlemobileapp.databinding.ActivityLoginBinding
 import com.example.yeezlemobileapp.supabase.SupabaseAuthHelper
+import com.example.yeezlemobileapp.supabase.SupabasePlayerHelper
 import com.example.yeezlemobileapp.utils.SharedPreferencesHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,12 +37,15 @@ class LoginActivity : AppCompatActivity() {
             notificationHelper.requestNotificationPermission(this)
         }
 
+        val logoutSuccess = intent.getBooleanExtra("logout_success", false)
+        val resetLinkSent = intent.getBooleanExtra("reset_link_sent", false)
 
-        val authorizeAndLogin = intent.getBooleanExtra("authorize_and_login", false)
-        if(authorizeAndLogin){
-            Toast.makeText(this, "Please verify your email", Toast.LENGTH_SHORT).show()
+        if (logoutSuccess) {
+            Toast.makeText(this, "Successfully signed out, see you next time!", Toast.LENGTH_SHORT).show()
         }
-
+        if (resetLinkSent) {
+            Toast.makeText(this, "Reset link sent. Check your email", Toast.LENGTH_SHORT).show()
+        }
 
 
         binding.loginButton.setOnClickListener {
@@ -101,9 +105,16 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun redirectToDashboardActivity() {
-        val intent = Intent(this, DashboardActivity::class.java)
-        intent.putExtra("login_success", true)
-        startActivity(intent)
-        finish()
+        CoroutineScope(Dispatchers.IO).launch {
+            val supabasePlayerHelper = SupabasePlayerHelper()
+            val username = supabasePlayerHelper.getUsername()
+            withContext(Dispatchers.Main) {
+                val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
+                intent.putExtra("login_success", true)
+                intent.putExtra("username", username)
+                startActivity(intent)
+                finish()
+            }
+        }
     }
 }

@@ -28,7 +28,7 @@ class DailyTaskWorker(context: Context, workerParams: WorkerParameters) : Worker
 
         NotificationHelper(context).sendNotification(
             title = "Game time",
-            message = "New song just got generated"
+            message = "New track just got generated. Click here to play!"
         )
 
         StepCounterService().apply {

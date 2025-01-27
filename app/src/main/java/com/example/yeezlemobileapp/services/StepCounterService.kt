@@ -48,7 +48,7 @@ class StepCounterService : Service(), SensorEventListener {
     private fun setupNotification() {
         createNotificationChannel()
         val notification = NotificationCompat.Builder(this, "step_counter_channel")
-            .setContentTitle("Step Counter Service")
+            .setContentTitle("Yeezle")
             .setContentText("Counting your steps...")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setPriority(NotificationCompat.PRIORITY_LOW)
